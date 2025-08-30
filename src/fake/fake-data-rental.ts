@@ -7,7 +7,7 @@ import type { Apartment, Staff, Tenant } from "@/rental/interfaces/rental.interf
 
 export const mockTenants: Tenant[] = [
   {
-  id: "b7e2c1a4-8f2e-4c1a-9e2a-1f2e3c4b5a6d",
+    id: "b7e2c1a4-8f2e-4c1a-9e2a-1f2e3c4b5a6d",
     name: "María González",
     apartment: "Apt 101",
     rent: 1200,
@@ -165,4 +165,25 @@ export const getDepartments = async (): Promise<Apartment[]> => {
 export const getDepartment = async (id: string): Promise<Apartment | undefined> => {
   await sleep(500);
   return fakeDepartments.getDepartment(id);
+};
+
+const fakeTenants = {
+  records: { "default": mockTenants } as Record<string, Tenant[]>,
+  getTenant: (id: string) => {
+    const all = Object.values(fakeTenants.records).flat();
+    return all.find((tenant) => tenant.id === id);
+  },
+  getTenants: () => {
+    return Object.values(fakeTenants.records);
+  }
+};
+
+export const getTenants = async (): Promise<Tenant[]> => {
+  await sleep(500);
+  return Object.values(fakeTenants.records).flat();
+};
+
+export const getTenant = async (id: string): Promise<Tenant | undefined> => {
+  await sleep(500);
+  return fakeTenants.getTenant(id);
 };

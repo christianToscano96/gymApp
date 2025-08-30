@@ -17,14 +17,15 @@ export const useGetStatusColor = (status: Status) => {
       case "paid":
       case "occupied":
       case "active":
-        return "bg-primary text-primary-foreground";
+        return "bg-green-100 text-green-800 border-green-200";
       case "pending":
       case "vacant":
-        return "bg-secondary text-secondary-foreground";
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      //return "bg-secondary text-secondary-foreground";
       case "expired":
       case "maintenance":
       case "inactive":
-        return "bg-destructive text-destructive-foreground";
+        return "bg-red-100 text-red-800 border-red-200";
       default:
         return "bg-muted text-muted-foreground";
     }
