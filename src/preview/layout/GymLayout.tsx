@@ -35,7 +35,7 @@ export default function RentalLayout({ user }: RentalLayoutProps) {
           <Bell />
           <Settings />
           <Avatar alt={user?.name} />
-          <div className="p-4">
+          <div className="">
             <Button
               variant="ghost"
               size="sm"

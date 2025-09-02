@@ -19,8 +19,8 @@ import { StatsChart } from "@/components/ui/stats-charts";
 import { ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from "recharts";
 const DashboarPage = () => {
   return (
-    <main className="pl-20 pr-20 pt-10 pb-20 flex-1 mt-5 mb-20 bg-white rounded-[20px] shadow-[0_4px_16px_rgba(17,17,26,0.05),0_8px_32px_rgba(17,17,26,0.05)]">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <main className="w-full min-h-screen flex-1 bg-white sm:rounded-[20px] sm:shadow-[0_4px_16px_rgba(17,17,26,0.05),0_8px_32px_rgba(17,17,26,0.05)] pb-30">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 px-2 sm:px-0 pt-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -85,7 +85,7 @@ const DashboarPage = () => {
       </div>
 
       {/* Charts and Recent Activity */}
-      <div className="grid gap-6 lg:grid-cols-2 mt-10">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 mt-6 px-2 sm:px-0">
         <StatsChart />
 
         <Card>
@@ -148,7 +148,7 @@ const DashboarPage = () => {
       </div>
 
       {/* Peak Hours */}
-      <div className="mt-10 w-100">
+      <div className="mt-6 w-full px-2 sm:px-0">
         <Card>
           <CardHeader>
             <CardTitle>Horas Pico</CardTitle>

@@ -58,8 +58,8 @@ const QrAccessControl = () => {
     }
   };
   return (
-    <main className="pl-20 pr-20 pt-10 pb-20 flex-1 mt-5 mb-20 bg-white rounded-[20px] shadow-[0_4px_16px_rgba(17,17,26,0.05),0_8px_32px_rgba(17,17,26,0.05)]">
-      <div className="grid gap-6 lg:grid-cols-2">
+    <main className="w-full min-h-screen flex-1 bg-white sm:rounded-[20px] sm:shadow-[0_4px_16px_rgba(17,17,26,0.05),0_8px_32px_rgba(17,17,26,0.05)] pb-20">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 px-2 sm:px-0 pt-4">
         {/* QR Scanner */}
         <Card>
           <CardHeader>
@@ -175,7 +175,7 @@ const QrAccessControl = () => {
         </Card>
       </div>{" "}
       {/* Access Logs */}
-      <Card className="mt-10">
+      <Card className="mt-6 px-2 sm:px-0">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>

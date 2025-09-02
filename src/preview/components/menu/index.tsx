@@ -6,14 +6,14 @@ const Menu = () => {
   const navigate = useNavigate();
   const location = useLocation();
   return (
-    <div className="mt-10 flex justify-start gap-5 pl-10">
+    <div className="mt-10 flex flex-row overflow-x-auto whitespace-nowrap gap-2 md:gap-5 px-2 md:pl-10 w-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent ">
       <Button
         variant={
           location.pathname.includes("/preview/dashboard")
             ? "default"
             : "secondary"
         }
-        className={` cursor-pointer mb-4 flex items-center justify-start`}
+        className="cursor-pointer mb-2 md:mb-4 flex items-center justify-start min-w-max"
         onClick={() => navigate("/preview/dashboard")}
       >
         <TrendingUp className="mr-1" />
@@ -23,7 +23,7 @@ const Menu = () => {
         variant={
           location.pathname.includes("/preview/users") ? "default" : "secondary"
         }
-        className={` cursor-pointer mb-4 flex items-center justify-start`}
+        className="cursor-pointer mb-2 md:mb-4 flex items-center justify-start min-w-max"
         onClick={() => navigate("/preview/users")}
       >
         <Users className="mr-1" />
@@ -35,7 +35,7 @@ const Menu = () => {
             ? "default"
             : "secondary"
         }
-        className={` cursor-pointer mb-4 flex items-center justify-start`}
+        className="cursor-pointer mb-2 md:mb-4 flex items-center justify-start min-w-max"
         onClick={() => navigate("/preview/qr-access-control")}
       >
         <QrCode className="mr-1" />
@@ -47,7 +47,7 @@ const Menu = () => {
             ? "default"
             : "secondary"
         }
-        className={` cursor-pointer flex items-center justify-start`}
+        className="cursor-pointer mb-2 md:mb-0 flex items-center justify-start min-w-max"
         onClick={() => navigate("/preview/payments")}
       >
         <CreditCard className="mr-1" />
@@ -57,7 +57,7 @@ const Menu = () => {
         variant={
           location.pathname.includes("/preview/staff") ? "default" : "secondary"
         }
-        className={` cursor-pointer flex items-center justify-start`}
+        className="cursor-pointer flex items-center justify-start min-w-max"
         onClick={() => navigate("/preview/staff")}
       >
         <UserCheck className="mr-1" />
