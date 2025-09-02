@@ -5,6 +5,7 @@ export type UserType = {
   email?: string;
   role?: "admin" | "user";
   token?: string;
+  phone?: string;
 };
 
 interface UserContextProps {
@@ -15,7 +16,9 @@ interface UserContextProps {
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<UserType | null>(null);
 
   const logout = () => {

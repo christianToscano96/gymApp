@@ -20,10 +20,15 @@ interface RegisterFormProps {
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
+  // Asegura que el rol sea 'user' si el checkbox no está seleccionado
+  const handleRoleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRole(e.target.checked ? "admin" : "user");
+  };
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");
+  const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { setUser } = useUser();
@@ -31,19 +36,19 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
   const [loading, setLoading] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !phone) {
       setError("Todos los campos son obligatorios");
       return;
     }
     setError("");
     setLoading(true);
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await fetch("http://localhost:5050/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ name, email, password, role, phone }),
       });
       if (!response.ok) {
         let errorMsg = "Error al registrar";
@@ -56,25 +61,24 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
         throw new Error(errorMsg);
       }
       const data = await response.json();
-      if (!data.user || !data.user.role) {
-        setError("La respuesta del servidor no contiene el usuario o el rol.");
-        return;
-      }
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('role', data.user.role);
+      // Si la respuesta no contiene usuario o rol, igual redirecciona según el rol enviado
+      const userRole = data?.user?.role || role;
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", userRole);
       setUser({
-        name: data.user.name,
-        email: data.user.email,
-        role: data.user.role,
+        name: data?.user?.name || name,
+        email: data?.user?.email || email,
+        role: userRole,
         token: data.token,
+        phone: data?.user?.phone || phone,
       });
-      if (data.user.role === "admin") {
+      if (userRole === "admin") {
         navigate("/preview", { replace: true });
       } else {
         navigate("/user-preview", { replace: true });
       }
       if (onRegister) {
-        onRegister({ name, email, password, role: data.user.role });
+        onRegister({ name, email, password, role: userRole });
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -134,13 +138,23 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
                 />
               </div>
               <div className="grid gap-2">
+                <Label htmlFor="phone">Teléfono</Label>
+                <Input
+                  id="phone"
+                  type="text"
+                  placeholder="Tu teléfono"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+
+              <div className="grid gap-2">
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     checked={role === "admin"}
-                    onChange={(e) =>
-                      setRole(e.target.checked ? "admin" : "user")
-                    }
+                    onChange={handleRoleChange}
                   />
                   Registrarse como administrador
                 </label>
