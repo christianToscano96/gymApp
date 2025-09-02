@@ -1,9 +1,9 @@
 import React from "react";
 import Avatar from "./avatar";
-import type { Staff, Tenant } from "@/rental/interfaces/rental.interfaces";
+import type { Staff, Tenant } from "@/preview/interfaces/preview.interfaces";
 import Badge from "./badge";
 import { DollarSign, Calendar, Phone, Mail } from "lucide-react";
-import { getTenant } from "@/fake/fake-data-rental";
+import { getTenant } from "@/fake/fake-data-gym";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "./skeleton";
 

@@ -1,7 +1,7 @@
+import React from "react";
 import { Link, useNavigate } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import placeholderImage from "@/assets/placeholder.svg";
 import { loginUser } from "@/fake/fake-data";
-
 function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -18,22 +17,34 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
     mutationFn: loginUser,
     onSuccess: (data) => {
       localStorage.setItem("token", data.token);
-
-      // TOD ivalidar query del usuario cuando el estado cambio
       queryClient.invalidateQueries({ queryKey: ["user"] });
-      navigate("/rental", { replace: true });
+      if (data.role === "admin") {
+        navigate("/preview", { replace: true });
+      } else {
+        navigate("/user-preview", { replace: true });
+      }
     },
   });
 
+  // Estado para email y password
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    loginMutate({ email, password });
+  };
+
   const onGoogleLogin = () => {
-    loginMutate();
+    // Demo: login como usuario normal
+    loginMutate({ email: "user@user.com", password: "user123" });
   };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden  p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8">
+          <form className="p-6 md:p-8" onSubmit={onSubmit}>
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
@@ -48,6 +59,8 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
                   type="email"
                   placeholder="m@example.com"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
@@ -60,7 +73,13 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
               <Button type="submit" className="w-full">
                 Login

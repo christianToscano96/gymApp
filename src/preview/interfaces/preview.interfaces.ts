@@ -1,0 +1,47 @@
+export interface User {
+  id: string
+  name: string
+  phone: string
+  email: string
+  status: "Activo" | "Vencido"
+  membership: "Básico" | "Premium"
+  lastVisit: string
+  avatar?: string
+  joinDate: string,
+  dueDate: string,
+  qrCode: string,
+  role: string,
+  password: string
+}
+
+export interface AccessLogs  {
+  id: string,
+  user: string,
+  timestamp: string,
+  accessStatus: "Permitido" | "Denegado",
+  date: string,
+  membership: "Básico" | "Premium"
+}
+
+
+export interface Payments {
+  id: number,
+  user: string,
+  amount: number,
+  date: string,
+  status: "Pagado" | "Pendiente" | "Vencido",
+  method: "Tarjeta" | "Efectivo" | "Transferencia",
+  concept: string,
+  dueDate: string,
+}
+export interface Staff {
+  id: string
+  name: string
+  role: string
+  phone: string
+  email: string
+  status: "active" | "inactive"
+  avatar?: string
+}
+
+export type MenuItem = "tenants" | "apartments" | "staff"

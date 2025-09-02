@@ -1,5 +1,5 @@
 import React from "react";
-import { useGetStatusColor } from "../../rental/hook/usegetStatusColor";
+import { useGetStatusColor } from "../../preview/hook/usegetStatusColor";
 
 export interface BadgeProps {
   children: React.ReactNode;

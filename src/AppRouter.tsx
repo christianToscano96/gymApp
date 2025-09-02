@@ -1,6 +1,4 @@
-import TenantsPage from "./rental/pages/tenants/TenantsPage";
-import DepartmentsPage from "./rental/pages/departments/DepartmentsPage";
-import StaffPage from "./rental/pages/staff/StaffPage";
+import StaffPage from "./preview/pages/staff/StaffPage";
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -8,36 +6,35 @@ import AuthLayout from "./auth/layaout/AuthLayout";
 import LoginPage from "./auth/pages/LoginPage";
 import RegisterPage from "./auth/pages/RegisterPage";
 
-import { sleep } from "./lib/sleep";
 import PrivateRoute from "./auth/components/PrivateRoute";
 import { checkAuth } from "./fake/fake-data";
 
-const ChatLayout = lazy(async () => {
-  await sleep(1000);
-  return import("./chat/layaout/ChatLayout");
-});
-const ChatPage = lazy(() => {
-  return import("./chat/pages/ChatPage");
+const GymLayout = lazy(() => {
+  return import("./preview/layout/GymLayout");
 });
 
-const RentalLayout = lazy(() => {
-  return import("./rental/layaut/RentalLayout");
+const UserLayout = lazy(() => {
+  return import("./user-preview/layout/UserLagout");
 });
 
-const DepartamentDetail = lazy(() => {
-  return import("./rental/pages/departments/DepartamentDetail");
+const UserPage = lazy(() => {
+  return import("./preview/pages/users/UserPage");
 });
 
-const NoChatSelected = lazy(() => {
-  return import("./chat/pages/NoChatSelected");
+const DashboardLayout = lazy(() => {
+  return import("./preview/pages/dashboard/DashboardPage");
 });
+
+const QrAccessControl = lazy(() => {
+  return import("./preview/pages/qr-access-control/QrAccessControl");
+});
+
+const PaymentManagement = lazy(() => {
+  return import("./preview/pages/payment-management/PaymentManagement");
+});
+
 function AppRouter() {
-  const {
-    data: user,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
+  const { data: user, isLoading } = useQuery({
     queryKey: ["user"],
     queryFn: () => {
       const token = localStorage.getItem("token");
@@ -89,8 +86,9 @@ function AppRouter() {
           <Route path="register" element={<RegisterPage />} />
         </Route>
 
+        {/* RUTA ADMIN */}
         <Route
-          path="/rental"
+          path="/preview"
           element={
             <Suspense
               fallback={
@@ -121,25 +119,41 @@ function AppRouter() {
                 </div>
               }
             >
-              <PrivateRoute isAuthenticated={!!user}>
-                <RentalLayout user={user} />
+              <PrivateRoute isAuthenticated={!!user && user.role === "admin"}>
+                <GymLayout user={user} />
               </PrivateRoute>
             </Suspense>
           }
         >
           <Route
-            path="tenant"
+            path="users"
             element={
               <Suspense fallback={<div>Cargando...</div>}>
-                <TenantsPage />
+                <UserPage />
               </Suspense>
             }
           />
           <Route
-            path="departments"
+            path="dashboard"
             element={
               <Suspense fallback={<div>Cargando...</div>}>
-                <DepartmentsPage />
+                <DashboardLayout />
+              </Suspense>
+            }
+          />
+          <Route
+            path="qr-access-control"
+            element={
+              <Suspense fallback={<div>Cargando...</div>}>
+                <QrAccessControl />
+              </Suspense>
+            }
+          />
+          <Route
+            path="payments"
+            element={
+              <Suspense fallback={<div>Cargando...</div>}>
+                <PaymentManagement />
               </Suspense>
             }
           />
@@ -151,54 +165,21 @@ function AppRouter() {
               </Suspense>
             }
           />
-          <Route
-            path="/rental/departments/:departmentId"
-            element={<DepartamentDetail />}
-          />
-          <Route index element={<Navigate to="tenant" />} />
+          <Route index element={<Navigate to="dashboard" />} />
         </Route>
 
+        {/* RUTA USUARIO NORMAL */}
         <Route
-          path="/chat"
+          path="/user-preview"
           element={
-            <Suspense
-              fallback={
-                <div className="flex flex-col items-center justify-center h-screen bg-background">
-                  <span className="text-lg font-semibold text-primary">
-                    Cargando, por favor espera...
-                  </span>
-                  <div className="w-48 mt-6">
-                    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-2 bg-primary animate-loading-slider rounded-full"
-                        style={{ width: "40%" }}
-                      ></div>
-                    </div>
-                  </div>
-                  <style>
-                    {`
-                      @keyframes loading-slider {
-                        0% { width: 0%; }
-                        50% { width: 80%; }
-                        100% { width: 0%; }
-                      }
-                      .animate-loading-slider {
-                        animation: loading-slider 1.5s infinite;
-                      }
-                    `}
-                  </style>
-                </div>
-              }
-            >
-              <PrivateRoute isAuthenticated={!!user}>
-                <ChatLayout />
+            <Suspense fallback={<div>Cargando...</div>}>
+              <PrivateRoute isAuthenticated={!!user && user.role === "user"}>
+                <UserLayout />
               </PrivateRoute>
             </Suspense>
           }
-        >
-          <Route index element={<NoChatSelected />} />
-          <Route path="/chat/:clientId" element={<ChatPage />} />
-        </Route>
+        />
+
         <Route path="/" element={<Navigate to="/auth" />} />
         <Route path="*" element={<Navigate to="/auth" />} />
       </Routes>
