@@ -210,7 +210,7 @@ const QrAccessControl = () => {
                   <TableRow key={log.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
-                        <Avatar src={log.avatar} alt={log.user} />
+                        <Avatar alt={log.user} />
                         <span className="font-medium">{log.user}</span>
                       </div>
                     </TableCell>

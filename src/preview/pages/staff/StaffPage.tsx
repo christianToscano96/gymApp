@@ -27,6 +27,7 @@ const StaffPage = () => {
     <main className="p-4 flex-1 pl-10 pr-10 mt-5">
       <div className="flex justify-between items-center ">
         <h1 className="text-2xl font-bold">Staff</h1>
+        {getIdStaff}
         <div className=" w-100">
           <Search />
         </div>

@@ -190,7 +190,7 @@ const PaymentManagement = () => {
                   <TableRow key={payment.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
-                        <Avatar src={payment?.avatar} alt={payment?.user} />
+                        <Avatar alt={payment?.user} />
                         <span className="font-medium">{payment.user}</span>
                       </div>
                     </TableCell>

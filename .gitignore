@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 
 .cursor
+# Local Netlify folder
+.netlify

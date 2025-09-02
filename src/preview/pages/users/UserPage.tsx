@@ -43,6 +43,7 @@ const UsersPage = () => {
           Nuevo Usuario
         </Button>
       </div>
+      {isLoading && <div>Loading...</div>}
       <ScrollArea className="h-[calc(80vh-0px)] mt-10">
         <Table>
           <TableHeader>
@@ -144,7 +145,7 @@ const UsersPage = () => {
           onClose={() => setOpenFormNewUser(false)}
           title="Add User"
         >
-          <AddUserForm onSubmit={() => {}} />
+          <AddUserForm onSubmit={() => {}} id="" />
         </Modal>
       </ScrollArea>
     </main>

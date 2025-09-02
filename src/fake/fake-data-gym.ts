@@ -14,7 +14,9 @@ export const mockUsers: User[] = [
     joinDate: "2023-06-15",
     avatar: "https://randomuser.me/api/portraits/women/1.jpg",
     dueDate: "2024-09-30",
-    qrCode: "QR-MGZ-0001"
+    qrCode: "QR-MGZ-0001",
+    role: "usuario",
+    password: "password123"
   },
   {
     id: "a1b2c3d4-0002-0000-0000-000000000002",
@@ -27,7 +29,9 @@ export const mockUsers: User[] = [
     joinDate: "2023-08-20",
     avatar: "https://randomuser.me/api/portraits/men/2.jpg",
     dueDate: "2024-10-15",
-    qrCode: "QR-CRZ-0002"
+    qrCode: "QR-CRZ-0002",
+    role: "usuario",
+    password: "password123"
   },
   {
     id: "a1b2c3d4-0003-0000-0000-000000000003",
@@ -40,7 +44,9 @@ export const mockUsers: User[] = [
     joinDate: "2023-03-10",
     avatar: "https://randomuser.me/api/portraits/women/3.jpg",
     dueDate: "2024-08-31",
-    qrCode: "QR-ALZ-0003"
+    qrCode: "QR-ALZ-0003",
+    role: "usuario",
+    password: "password123"
   },
   {
     id: 'a1b2c3d4-0003-0000-0000-000000000005',
@@ -52,7 +58,9 @@ export const mockUsers: User[] = [
     lastVisit: "2024-01-15",
     joinDate: "2023-11-05",
     dueDate: "2024-12-01",
-    qrCode: "QR-PMN-0005"
+    qrCode: "QR-PMN-0005",
+    role: "usuario",
+    password: "password123"
   },
 ]
 // Mock data

@@ -19,9 +19,13 @@ const initialState: Omit<User, "id"> = {
   phone: "",
   email: "",
   avatar: "",
-  membership: "",
+  membership: "Básico",
   lastVisit: "",
   dueDate: "",
+  joinDate: "",
+  qrCode: "",
+  role: "usuario",
+  password: "",
 };
 
 export const AddUserForm: React.FC<AddUserFormProps> = ({ onSubmit, id }) => {
