@@ -10,3 +10,9 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Proxy para API local
+[[redirects]]
+  from = "/api/*"
+  to = "http://localhost:5000/api/:splat"
+  status = 200
