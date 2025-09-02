@@ -24,5 +24,14 @@ export default defineConfig({
     }
   },
   // Importante para rutas en Netlify
-  base: './'
+  base: './',
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5050', // Cambia el puerto si tu backend usa otro
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  }
 })

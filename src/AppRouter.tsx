@@ -4,10 +4,10 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import AuthLayout from "./auth/layaout/AuthLayout";
 import LoginPage from "./auth/pages/LoginPage";
-import RegisterPage from "./auth/pages/RegisterPage";
 
 import PrivateRoute from "./auth/components/PrivateRoute";
 import { checkAuth } from "./fake/fake-data";
+import RegisterForm from "./auth/pages/RegisterForm";
 
 const GymLayout = lazy(() => {
   return import("./preview/layout/GymLayout");
@@ -83,7 +83,7 @@ function AppRouter() {
       <Routes>
         <Route path="/auth" element={<AuthLayout />}>
           <Route index element={<LoginPage />} />
-          <Route path="register" element={<RegisterPage />} />
+          <Route path="/auth/register" element={<RegisterForm />} />
         </Route>
 
         {/* RUTA ADMIN */}
@@ -119,7 +119,7 @@ function AppRouter() {
                 </div>
               }
             >
-              <PrivateRoute isAuthenticated={!!user && user.role === "admin"}>
+              <PrivateRoute requiredRole="admin">
                 <GymLayout user={user} />
               </PrivateRoute>
             </Suspense>
@@ -173,7 +173,7 @@ function AppRouter() {
           path="/user-preview"
           element={
             <Suspense fallback={<div>Cargando...</div>}>
-              <PrivateRoute isAuthenticated={!!user && user.role === "user"}>
+              <PrivateRoute requiredRole="user">
                 <UserLayout />
               </PrivateRoute>
             </Suspense>

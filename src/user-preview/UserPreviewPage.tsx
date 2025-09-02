@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { LogOut } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +19,7 @@ import { mockUserData } from "@/fake/fake-data-user-profile";
 
 export default function UserPreviewPage() {
   const [isRenewing, setIsRenewing] = useState(false);
+  const { logout } = useUser();
 
   const handleRenewMembership = async () => {
     setIsRenewing(true);
@@ -173,7 +176,7 @@ export default function UserPreviewPage() {
 
         {/* Renewal Button */}
         <Card className="border-primary/20">
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 space-y-4">
             <Button
               onClick={handleRenewMembership}
               disabled={isRenewing}
@@ -190,6 +193,14 @@ export default function UserPreviewPage() {
                   Renovar Membresía
                 </>
               )}
+            </Button>
+            <Button
+              onClick={logout}
+              variant="destructive"
+              className="w-full h-12 text-lg font-semibold flex items-center justify-center gap-2"
+            >
+              <LogOut className="mr-2 h-5 w-5" />
+              Cerrar sesión
             </Button>
             <p className="text-xs text-muted-foreground text-center mt-3">
               Renueva tu membresía para continuar disfrutando de todos los

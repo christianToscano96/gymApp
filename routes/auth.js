@@ -1,38 +1,64 @@
-import express from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
-import dotenv from 'dotenv';
+import express from "express";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import dotenv from "dotenv";
 dotenv.config();
 
 const router = express.Router();
 
 // Registro
-router.post('/register', async (req, res) => {
+router.post("/register", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
     const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json({ error: 'Email ya registrado' });
+    if (userExists)
+      return res.status(400).json({ error: "Email ya registrado" });
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const user = new User({ name, email, password: hashedPassword });
+  // Validar el role recibido, solo permitir valores válidos
+  const validRoles = ["admin", "user", "staff"];
+  const userRole = validRoles.includes(role) ? role : "user";
+  const user = new User({ name, email, password: hashedPassword, role: userRole });
     await user.save();
-    res.status(201).json({ message: 'Usuario registrado' });
+    // Si quieres devolver también un token, puedes generarlo aquí
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET || "secret",
+      { expiresIn: "1d" }
+    );
+    res.status(201).json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 // Login
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: 'Credenciales inválidas' });
+    if (!user) return res.status(400).json({ error: "Credenciales inválidas" });
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: 'Credenciales inválidas' });
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+    if (!isMatch)
+      return res.status(400).json({ error: "Credenciales inválidas" });
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET || "secret",
+      { expiresIn: "1d" }
+    );
+    res.json({
+      token,
+      user: { id: user._id, name: user.name, email: user.email },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
