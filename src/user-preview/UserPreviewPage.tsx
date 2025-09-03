@@ -15,11 +15,11 @@ import {
   RefreshCw,
   User,
 } from "lucide-react";
-import { mockUserData } from "@/fake/fake-data-user-profile";
+// import { mockUserData } from "@/fake/fake-data-user-profile";
 
 export default function UserPreviewPage() {
   const [isRenewing, setIsRenewing] = useState(false);
-  const { logout } = useUser();
+  const { user, logout } = useUser();
 
   const handleRenewMembership = async () => {
     setIsRenewing(true);
@@ -39,13 +39,22 @@ export default function UserPreviewPage() {
   };
 
   const isExpiringSoon = () => {
-    const dueDate = new Date(mockUserData.dueDate);
+    if (!user?.dueDate) return false;
+    const dueDate = new Date(user.dueDate);
     const today = new Date();
     const daysUntilExpiry = Math.ceil(
       (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
     return daysUntilExpiry <= 30;
   };
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="text-lg">No hay datos de usuario disponibles.</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
@@ -55,23 +64,19 @@ export default function UserPreviewPage() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4">
               <Avatar
-                src={mockUserData.avatar || "/placeholder.svg"}
-                alt={mockUserData.name}
+                src={user.avatar || "/placeholder.svg"}
+                alt={user.name}
               />
               <div>
                 <h1 className="text-2xl font-bold text-foreground">
-                  {mockUserData.name}
+                  {user.name}
                 </h1>
                 <div className="flex items-center justify-center gap-2 mt-2">
                   <Badge
-                    status={
-                      mockUserData.membershipStatus === "active"
-                        ? "default"
-                        : "secondary"
-                    }
+                    status={user.status === "Activo" ? "default" : "secondary"}
                     className="bg-primary text-primary-foreground"
                   >
-                    {mockUserData.membershipType}
+                    {user.membership || "Sin membresía"}
                   </Badge>
                   {isExpiringSoon() && (
                     <Badge status="destructive" className="animate-pulse">
@@ -98,7 +103,7 @@ export default function UserPreviewPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Email</p>
                 <p className="font-medium text-foreground">
-                  {mockUserData.email}
+                  {user.email}
                 </p>
               </div>
             </div>
@@ -108,7 +113,7 @@ export default function UserPreviewPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Teléfono</p>
                 <p className="font-medium text-foreground">
-                  {mockUserData.phone}
+                  {user.phone}
                 </p>
               </div>
             </div>
@@ -116,11 +121,9 @@ export default function UserPreviewPage() {
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-sm text-muted-foreground">
-                  Fecha de ingreso
-                </p>
+                <p className="text-sm text-muted-foreground">Fecha de ingreso</p>
                 <p className="font-medium text-foreground">
-                  {formatDate(mockUserData.joinDate)}
+                  {user.joinDate ? formatDate(user.joinDate) : "-"}
                 </p>
               </div>
             </div>
@@ -134,7 +137,7 @@ export default function UserPreviewPage() {
                     isExpiringSoon() ? "text-destructive" : "text-foreground"
                   }`}
                 >
-                  {formatDate(mockUserData.dueDate)}
+                  {user.dueDate ? formatDate(user.dueDate) : "-"}
                 </p>
               </div>
             </div>
@@ -153,17 +156,15 @@ export default function UserPreviewPage() {
             <div className="flex flex-col items-center space-y-4">
               <div className="p-4 bg-white rounded-xl border-2 border-border shadow-sm">
                 <img
-                  src={`/qr-code-for-gym-access-.png?height=200&width=200&query=QR code for gym access ${mockUserData.qrCode}`}
+                  src={`/qr-code-for-gym-access-.png?height=200&width=200&query=QR code for gym access ${user.qrCode || ""}`}
                   alt="QR Code de acceso al gimnasio"
                   className="h-48 w-48"
                 />
               </div>
               <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Código de miembro
-                </p>
+                <p className="text-sm text-muted-foreground">Código de miembro</p>
                 <p className="font-mono text-sm font-medium text-foreground bg-muted px-2 py-1 rounded">
-                  {mockUserData.qrCode}
+                  {user.qrCode || "-"}
                 </p>
               </div>
               <p className="text-xs text-muted-foreground text-center max-w-sm">

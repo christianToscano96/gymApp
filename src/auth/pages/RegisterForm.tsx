@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import { useUser } from "@/context/UserContext";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
-// import { registerUser } from "@/fake/fake-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,7 +21,7 @@ interface RegisterFormProps {
 const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
   // Asegura que el rol sea 'user' si el checkbox no está seleccionado
   const handleRoleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRole(e.target.checked ? "admin" : "user");
+    setRole(e.target.checked ? "administrator" : "user");
   };
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -43,12 +42,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
     setError("");
     setLoading(true);
     try {
+      // Asegura que el rol siempre se envíe en minúsculas
+      const safeRole = role.toLowerCase();
       const response = await fetch("http://localhost:5050/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password, role, phone }),
+        body: JSON.stringify({ name, email, password, role: safeRole, phone }),
       });
       if (!response.ok) {
         let errorMsg = "Error al registrar";
@@ -72,7 +73,19 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
         token: data.token,
         phone: data?.user?.phone || phone,
       });
-      if (userRole === "admin") {
+      // Logs para depuración
+      console.log(
+        "Role guardado en localStorage:",
+        localStorage.getItem("role")
+      );
+      console.log("Usuario guardado en contexto:", {
+        name: data?.user?.name || name,
+        email: data?.user?.email || email,
+        role: userRole,
+        token: data.token,
+        phone: data?.user?.phone || phone,
+      });
+      if (userRole === "administrator") {
         navigate("/preview", { replace: true });
       } else {
         navigate("/user-preview", { replace: true });
@@ -153,7 +166,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={role === "admin"}
+                    checked={role === "administrator"}
                     onChange={handleRoleChange}
                   />
                   Registrarse como administrador

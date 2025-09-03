@@ -6,7 +6,6 @@ import AuthLayout from "./auth/layaout/AuthLayout";
 import LoginPage from "./auth/pages/LoginPage";
 
 import PrivateRoute from "./auth/components/PrivateRoute";
-import { checkAuth } from "./fake/fake-data";
 import RegisterForm from "./auth/pages/RegisterForm";
 
 const GymLayout = lazy(() => {
@@ -34,12 +33,28 @@ const PaymentManagement = lazy(() => {
 });
 
 function AppRouter() {
+  // Nueva función para validar el token con el backend
+  const checkAuth = async (token: string) => {
+    const response = await fetch("/api/auth/check", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Token inválido");
+    }
+    const data = await response.json();
+    return data.user;
+  };
+
   const { data: user, isLoading } = useQuery({
     queryKey: ["user"],
     queryFn: () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error("No token ssfound");
+        throw new Error("No token encontrado");
       }
       return checkAuth(token);
     },
@@ -119,7 +134,7 @@ function AppRouter() {
                 </div>
               }
             >
-              <PrivateRoute requiredRole="admin">
+              <PrivateRoute requiredRole="administrator">
                 <GymLayout user={user} />
               </PrivateRoute>
             </Suspense>

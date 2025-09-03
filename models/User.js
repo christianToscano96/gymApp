@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   password: String,
   phone: String,
-  role: { type: String, enum: ["admin", "user", "staff"], default: "admin" },
+  role: { type: String, enum: ["administrator", "user", "staff"], default: "administrator" },
   membership: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
   createdAt: { type: Date, default: Date.now },
 });

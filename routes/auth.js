@@ -16,10 +16,12 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "Email ya registrado" });
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-  // Validar el role recibido, solo permitir valores válidos
-  const validRoles = ["admin", "user", "staff"];
-  const userRole = validRoles.includes(role) ? role : "user";
-  const user = new User({ name, email, password: hashedPassword, role: userRole });
+    // Validar el role recibido, solo permitir valores válidos
+    const validRoles = ["administrator", "user", "staff"];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: "Rol inválido" });
+    }
+    const user = new User({ name, email, password: hashedPassword, role });
     await user.save();
     // Si quieres devolver también un token, puedes generarlo aquí
     const token = jwt.sign(
@@ -57,7 +59,13 @@ router.post("/login", async (req, res) => {
     );
     res.json({
       token,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone || null, // Asegura que el frontend pueda recibir phone si existe
+      },
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

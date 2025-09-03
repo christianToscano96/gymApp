@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import placeholderImage from "@/assets/placeholder.svg";
-// import { loginUser } from "@/fake/fake-data";
 import { useUser } from "@/context/UserContext";
+import { loginUser } from "@/api/authService";
 
 function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
@@ -24,33 +24,37 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
     setError("");
     setIsPending(true);
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "Credenciales incorrectas. Intenta de nuevo."
+      const data = await loginUser({ email, password });
+      console.log("Respuesta de loginUser:", data); // <-- LOG PARA DEPURAR
+      if (!data.user || !data.user.role) {
+        setError(
+          "No se recibió el rol del usuario. Contacta al administrador."
         );
+        setIsPending(false);
+        return;
       }
-      const data = await response.json();
+      // Guardar usuario en localStorage y contexto
       localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role);
+      localStorage.setItem("role", data.user.role);
+      if (data.user.name) localStorage.setItem("name", data.user.name);
+      if (data.user.email) localStorage.setItem("email", data.user.email);
+      if (data.user.phone) localStorage.setItem("phone", data.user.phone);
       setUser({
-        name: data.name,
-        email: data.email,
-        role: data.role,
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        phone: data.user.phone,
+        role: data.user.role,
         token: data.token,
       });
       queryClient.invalidateQueries({});
-      if (data.role === "admin") {
+      // Redirigir según el rol
+      if (data.user.role === "administrator") {
         navigate("/preview", { replace: true });
-      } else {
+      } else if (data.user.role === "user") {
         navigate("/user-preview", { replace: true });
+      } else {
+        setError("Rol de usuario no permitido para acceder a la app.");
       }
     } catch (err) {
       setError(
@@ -62,48 +66,7 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
       setIsPending(false);
     }
   };
-  const onGoogleLogin = async () => {
-    setError("");
-    setIsPending(true);
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: "user@user.com", password: "user123" }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "Credenciales incorrectas. Intenta de nuevo."
-        );
-      }
-      const data = await response.json();
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role);
-      setUser({
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        token: data.token,
-      });
-      queryClient.invalidateQueries({});
-      if (data.role === "admin") {
-        navigate("/preview", { replace: true });
-      } else {
-        navigate("/user-preview", { replace: true });
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Credenciales incorrectas. Intenta de nuevo."
-      );
-    } finally {
-      setIsPending(false);
-    }
-  };
+
   return (
     <div
       className={cn(
@@ -189,7 +152,6 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={onGoogleLogin}
                   type="button"
                   disabled={isPending}
                 >

@@ -24,7 +24,7 @@ const initialState: Omit<User, "id"> = {
   dueDate: "",
   joinDate: "",
   qrCode: "",
-  role: "usuario",
+  role: "user",
   password: "",
 };
 
