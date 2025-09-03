@@ -8,10 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import placeholderImage from "@/assets/placeholder.svg";
+import { SuccessAlert } from "@/components/ui/success-alert";
 import { useUser } from "@/context/UserContext";
 import { loginUser } from "@/api/authService";
 
 function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
+  const [showSuccess, setShowSuccess] = React.useState(false);
+  const [successMsg, setSuccessMsg] = React.useState("");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { setUser } = useUser();
@@ -48,6 +51,8 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
         token: data.token,
       });
       queryClient.invalidateQueries({});
+      setSuccessMsg("Inicio de sesión exitoso");
+      setShowSuccess(true);
       // Redirigir según el rol
       if (data.user.role === "administrator") {
         navigate("/preview", { replace: true });
@@ -62,6 +67,8 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
           ? err.message
           : "Credenciales incorrectas. Intenta de nuevo."
       );
+      setSuccessMsg("");
+      setShowSuccess(false);
     } finally {
       setIsPending(false);
     }
@@ -75,6 +82,14 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
       )}
       {...props}
     >
+      {showSuccess && (
+        <SuccessAlert
+          title="¡Inicio de sesión exitoso!"
+          description={successMsg}
+          variant="success"
+          onClose={() => setShowSuccess(false)}
+        />
+      )}
       <Card className="overflow-hidden p-0 w-full max-w-3xl shadow-lg">
         <CardContent className="grid p-0 md:grid-cols-2">
           <form className="p-6 md:p-8" onSubmit={onSubmit}>
@@ -88,9 +103,11 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
                 </p>
               </div>
               {error && (
-                <div className="text-red-500 text-sm text-center mb-2">
-                  {error}
-                </div>
+                <SuccessAlert
+                  description={error}
+                  variant="destructive"
+                  onClose={() => setError("")}
+                />
               )}
               <div className="grid gap-2">
                 <Label htmlFor="email">Correo electrónico</Label>

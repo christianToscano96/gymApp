@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SuccessAlert } from "@/components/ui/success-alert";
 import placeholderImage from "@/assets/placeholder.svg";
 
 interface RegisterFormProps {
@@ -31,6 +32,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { setUser } = useUser();
+
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,11 +88,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
         token: data.token,
         phone: data?.user?.phone || phone,
       });
-      if (userRole === "administrator") {
-        navigate("/preview", { replace: true });
-      } else {
-        navigate("/user-preview", { replace: true });
-      }
+      setShowSuccess(true);
+      setTimeout(() => {
+        if (userRole === "administrator") {
+          navigate("/preview", { replace: true });
+        } else {
+          navigate("/user-preview", { replace: true });
+        }
+      }, 2000);
       if (onRegister) {
         onRegister({ name, email, password, role: userRole });
       }
@@ -106,6 +112,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
 
   return (
     <div className={cn("flex flex-col gap-6")}>
+      {showSuccess && (
+        <SuccessAlert
+          description="usuario creado correctamente"
+          onClose={() => setShowSuccess(false)}
+        />
+      )}
       <Card className="overflow-hidden p-0 w-full max-w-3xl shadow-lg">
         <CardContent className="grid p-0 md:grid-cols-2">
           <form className="p-6 md:p-8" onSubmit={handleSubmit}>
@@ -116,7 +128,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
                   Regístrate para acceder a GymApp
                 </p>
               </div>
-              {error && <div className="text-red-500 mb-2">{error}</div>}
+              {error && (
+                <SuccessAlert
+                  description={error}
+                  onClose={() => setError("")}
+                  variant="destructive"
+                />
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="name">Nombre</Label>
                 <Input
