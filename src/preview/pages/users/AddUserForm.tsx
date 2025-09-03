@@ -65,8 +65,6 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ onSubmit, id }) => {
     );
   }
 
-  console.log(user);
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -163,9 +161,9 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ onSubmit, id }) => {
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           >
-            <option value="paid">Pagado</option>
-            <option value="pending">Pendiente</option>
-            <option value="expired">Vencido</option>
+            <option value="activo">Activo</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="vencido">Vencido</option>
           </select>
         </div>
       )}

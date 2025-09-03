@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import { useUser } from "@/context/UserContext";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ interface RegisterFormProps {
     email: string;
     password: string;
     role: string;
+    status: string;
   }) => void;
 }
 
@@ -31,7 +32,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { setUser } = useUser();
+  const queryClient = useQueryClient();
 
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -52,7 +53,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password, role: safeRole, phone }),
+        body: JSON.stringify({ name, email, password, role: safeRole, phone, status: "activo" }),
       });
       if (!response.ok) {
         let errorMsg = "Error al registrar";
@@ -69,25 +70,15 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
       const userRole = data?.user?.role || role;
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", userRole);
-      setUser({
+      queryClient.setQueryData(["user"], {
         name: data?.user?.name || name,
         email: data?.user?.email || email,
         role: userRole,
         token: data.token,
         phone: data?.user?.phone || phone,
+        status: data?.user?.status || "activo",
       });
-      // Logs para depuración
-      console.log(
-        "Role guardado en localStorage:",
-        localStorage.getItem("role")
-      );
-      console.log("Usuario guardado en contexto:", {
-        name: data?.user?.name || name,
-        email: data?.user?.email || email,
-        role: userRole,
-        token: data.token,
-        phone: data?.user?.phone || phone,
-      });
+
       setShowSuccess(true);
       setTimeout(() => {
         if (userRole === "administrator") {
@@ -97,7 +88,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
         }
       }, 2000);
       if (onRegister) {
-        onRegister({ name, email, password, role: userRole });
+  onRegister({ name, email, password, role: userRole, status: "activo" });
       }
     } catch (err) {
       if (err instanceof Error) {

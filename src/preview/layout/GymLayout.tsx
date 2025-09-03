@@ -15,8 +15,8 @@ export default function RentalLayout({ user }: RentalLayoutProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const onLogout = () => {
-    localStorage.removeItem("token");
-    queryClient.invalidateQueries({ queryKey: ["user"] });
+    localStorage.clear();
+    queryClient.removeQueries({ queryKey: ["user"] });
     navigate("/auth", { replace: true });
   };
 

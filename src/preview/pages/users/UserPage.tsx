@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search } from "@/components/ui/search";
-import { getUsers } from "@/fake/fake-data-gym";
+// import { getUsers } from "@/fake/fake-data-gym";
 import {
   Table,
   TableHeader,
@@ -26,12 +26,35 @@ const UsersPage = () => {
 
   const [getIdUser, setGetIdUser] = useState("");
 
-  const { data: users, isLoading } = useQuery({
+  const fetchUsers = async () => {
+    const res = await fetch("/api/users");
+    if (!res.ok) throw new Error("Error al obtener usuarios");
+    return res.json();
+  };
+
+  type User = {
+    id: string;
+    name: string;
+    avatar?: string;
+    email: string;
+    phone: string;
+    status: string;
+    //membership: string;
+    lastVisit: string;
+    role: string;
+  };
+
+  const {
+    data: users,
+    isLoading,
+    refetch,
+  } = useQuery<User[]>({
     queryKey: ["users"],
-    queryFn: getUsers,
+    queryFn: fetchUsers,
     staleTime: 1000 * 60 * 5,
   });
 
+  console.log(users);
   return (
     <main className="pl-20 pr-20 pt-10 flex-1 mt-5 bg-white rounded-[20px] shadow-[0_4px_16px_rgba(17,17,26,0.05),0_8px_32px_rgba(17,17,26,0.05)]">
       <div className="flex justify-between items-center ">
@@ -51,75 +74,63 @@ const UsersPage = () => {
               <TableHead></TableHead>
               <TableHead>Usuario</TableHead>
               <TableHead>Contacto</TableHead>
-              <TableHead>Membresía</TableHead>
+              <TableHead>Rol</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead>Última Visita</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users?.map(
-              ({
-                id,
-                name,
-                avatar,
-                email,
-                phone,
-                status,
-                membership,
-                lastVisit,
-              }) => (
-                <TableRow key={id} className="hover:bg-gray-50 ">
-                  <TableCell></TableCell>
-                  <TableCell className="flex items-center gap-2 pt-4">
-                    <Avatar
-                      size="sm"
-                      alt={name}
-                      src={avatar}
-                      className="text-xs"
-                    />
-                    {name}
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="flex items-center gap-2 text-gray-500">
-                        <Mail className="w-3 h-3 text-gray-500" /> {email}
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-500">
-                        <Phone className="w-3 h-3 text-gray-500" /> {phone}
-                      </div>
+            {users?.map((user: User) => (
+              <TableRow key={user.id} className="hover:bg-gray-50 ">
+                <TableCell></TableCell>
+                <TableCell className="flex items-center gap-2 pt-4">
+                  <Avatar
+                    size="sm"
+                    alt={user.name}
+                    src={user.avatar}
+                    className="text-xs"
+                  />
+                  {user.name}
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <Mail className="w-3 h-3 text-gray-500" /> {user.email}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge status={membership}>{membership}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge status={status}>{status}</Badge>
-                  </TableCell>
-                  <TableCell className="flex items-center gap-2 text-gray-500 pb-3">
-                    <Calendar className="w-3 h-3" /> {lastVisit}
-                  </TableCell>
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <Phone className="w-3 h-3 text-gray-500" /> {user.phone}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>{user.role || "-"}</TableCell>
 
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <SquarePen
-                        className="w-4 h-4 text-gray-500"
-                        onClick={() => {
-                          setOpenViewUserModal(true);
-                          setGetIdUser(id);
-                        }}
-                      />
-                      <Trash
-                        onClick={() => {
-                          setOpenDialog(true);
-                        }}
-                        className="w-4 h-4 text-gray-500"
-                      />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )
-            )}
+                <TableCell>
+                  <Badge status={user.status}>{user.status}</Badge>
+                </TableCell>
+                <TableCell className="flex items-center gap-2 text-gray-500 pb-3">
+                  <Calendar className="w-3 h-3" /> {user.lastVisit}
+                </TableCell>
+
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <SquarePen
+                      className="w-4 h-4 text-gray-500"
+                      onClick={() => {
+                        setOpenViewUserModal(true);
+                        setGetIdUser(user.id);
+                      }}
+                    />
+                    <Trash
+                      onClick={() => {
+                        setOpenDialog(true);
+                      }}
+                      className="w-4 h-4 text-gray-500"
+                    />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
         <AlertDialog
@@ -135,17 +146,23 @@ const UsersPage = () => {
         />
         <Modal
           isOpen={openViewUserModal}
-          onClose={() => setOpenViewUserModal(false)}
+          onClose={() => {
+            setOpenViewUserModal(false);
+            refetch();
+          }}
           title="View User"
         >
-          <AddUserForm onSubmit={() => {}} id={getIdUser} />
+          <AddUserForm onSubmit={() => { refetch(); }} id={getIdUser} />
         </Modal>
         <Modal
           isOpen={openFormNewUser}
-          onClose={() => setOpenFormNewUser(false)}
+          onClose={() => {
+            setOpenFormNewUser(false);
+            refetch();
+          }}
           title="Add User"
         >
-          <AddUserForm onSubmit={() => {}} id="" />
+          <AddUserForm onSubmit={() => { refetch(); }} id="" />
         </Modal>
       </ScrollArea>
     </main>

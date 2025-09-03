@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { LogOut } from "lucide-react";
-import { useUser } from "@/context/UserContext";
+import { useQueryClient } from "@tanstack/react-query";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,29 @@ import {
 
 export default function UserPreviewPage() {
   const [isRenewing, setIsRenewing] = useState(false);
-  const { user, logout } = useUser();
+  const queryClient = useQueryClient();
+  type UserType = {
+    id?: string;
+    name?: string;
+    phone?: string;
+    email?: string;
+    status?: "Activo" | "Vencido";
+    membership?: "Básico" | "Premium";
+    lastVisit?: string;
+    avatar?: string;
+    joinDate?: string;
+    dueDate?: string;
+    qrCode?: string;
+    role?: "administrator" | "user";
+    password?: string;
+    token?: string;
+  };
+  const user = queryClient.getQueryData(["user"]) as UserType | undefined;
+  const logout = () => {
+    queryClient.removeQueries({ queryKey: ["user"] });
+    localStorage.clear();
+    window.location.href = "/auth";
+  };
 
   const handleRenewMembership = async () => {
     setIsRenewing(true);
@@ -39,7 +61,7 @@ export default function UserPreviewPage() {
   };
 
   const isExpiringSoon = () => {
-    if (!user?.dueDate) return false;
+    if (!user || !user.dueDate) return false;
     const dueDate = new Date(user.dueDate);
     const today = new Date();
     const daysUntilExpiry = Math.ceil(
@@ -63,10 +85,7 @@ export default function UserPreviewPage() {
         <Card className="text-center">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4">
-              <Avatar
-                src={user.avatar || "/placeholder.svg"}
-                alt={user.name}
-              />
+              <Avatar src={user.avatar || "/placeholder.svg"} alt={user.name} />
               <div>
                 <h1 className="text-2xl font-bold text-foreground">
                   {user.name}
@@ -102,9 +121,7 @@ export default function UserPreviewPage() {
               <Mail className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium text-foreground">
-                  {user.email}
-                </p>
+                <p className="font-medium text-foreground">{user.email}</p>
               </div>
             </div>
 
@@ -112,16 +129,16 @@ export default function UserPreviewPage() {
               <Phone className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Teléfono</p>
-                <p className="font-medium text-foreground">
-                  {user.phone}
-                </p>
+                <p className="font-medium text-foreground">{user.phone}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-sm text-muted-foreground">Fecha de ingreso</p>
+                <p className="text-sm text-muted-foreground">
+                  Fecha de ingreso
+                </p>
                 <p className="font-medium text-foreground">
                   {user.joinDate ? formatDate(user.joinDate) : "-"}
                 </p>
@@ -156,13 +173,17 @@ export default function UserPreviewPage() {
             <div className="flex flex-col items-center space-y-4">
               <div className="p-4 bg-white rounded-xl border-2 border-border shadow-sm">
                 <img
-                  src={`/qr-code-for-gym-access-.png?height=200&width=200&query=QR code for gym access ${user.qrCode || ""}`}
+                  src={`/qr-code-for-gym-access-.png?height=200&width=200&query=QR code for gym access ${
+                    user.qrCode || ""
+                  }`}
                   alt="QR Code de acceso al gimnasio"
                   className="h-48 w-48"
                 />
               </div>
               <div className="text-center">
-                <p className="text-sm text-muted-foreground">Código de miembro</p>
+                <p className="text-sm text-muted-foreground">
+                  Código de miembro
+                </p>
                 <p className="font-mono text-sm font-medium text-foreground bg-muted px-2 py-1 rounded">
                   {user.qrCode || "-"}
                 </p>

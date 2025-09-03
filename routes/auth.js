@@ -10,7 +10,7 @@ const router = express.Router();
 // Registro
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+  const { name, email, password, role, phone } = req.body;
     const userExists = await User.findOne({ email });
     if (userExists)
       return res.status(400).json({ error: "Email ya registrado" });
@@ -21,7 +21,7 @@ router.post("/register", async (req, res) => {
     if (!validRoles.includes(role)) {
       return res.status(400).json({ error: "Rol inválido" });
     }
-    const user = new User({ name, email, password: hashedPassword, role });
+  const user = new User({ name, email, password: hashedPassword, role, phone });
     await user.save();
     // Si quieres devolver también un token, puedes generarlo aquí
     const token = jwt.sign(
@@ -36,6 +36,7 @@ router.post("/register", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        phone: user.phone || null, // Asegura que el frontend pueda recibir phone si existe
       },
     });
   } catch (err) {
@@ -65,6 +66,7 @@ router.post("/login", async (req, res) => {
         email: user.email,
         role: user.role,
         phone: user.phone || null, // Asegura que el frontend pueda recibir phone si existe
+        status: user.status,
       },
     });
   } catch (err) {

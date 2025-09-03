@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import placeholderImage from "@/assets/placeholder.svg";
 import { SuccessAlert } from "@/components/ui/success-alert";
-import { useUser } from "@/context/UserContext";
+// import { useUser } from "@/context/UserContext";
 import { loginUser } from "@/api/authService";
 
 function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
@@ -17,7 +17,7 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
   const [successMsg, setSuccessMsg] = React.useState("");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { setUser } = useUser();
+  // Eliminado setUser de UserContext
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState("");
@@ -28,7 +28,6 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
     setIsPending(true);
     try {
       const data = await loginUser({ email, password });
-      console.log("Respuesta de loginUser:", data); // <-- LOG PARA DEPURAR
       if (!data.user || !data.user.role) {
         setError(
           "No se recibió el rol del usuario. Contacta al administrador."
@@ -42,11 +41,19 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
       if (data.user.name) localStorage.setItem("name", data.user.name);
       if (data.user.email) localStorage.setItem("email", data.user.email);
       if (data.user.phone) localStorage.setItem("phone", data.user.phone);
-      setUser({
+      // Guardar usuario en TanStack Query
+      queryClient.setQueryData(["user"], {
         id: data.user.id,
         name: data.user.name,
         email: data.user.email,
         phone: data.user.phone,
+        status: "activo",
+        membership: data.user.membership,
+        lastVisit: data.user.lastVisit,
+        avatar: data.user.avatar,
+        joinDate: data.user.joinDate,
+        dueDate: data.user.dueDate,
+        qrCode: data.user.qrCode,
         role: data.user.role,
         token: data.token,
       });

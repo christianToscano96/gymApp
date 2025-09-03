@@ -22,7 +22,7 @@ connectDB();
 app.post("/api/users", async (req, res) => {
   try {
     // Si el usuario ya existe, no sobrescribir el rol
-    const { email, role } = req.body;
+  const { email, role, phone } = req.body;
     const userExists = await User.findOne({ email });
     if (userExists) {
       // No modificar el rol si ya es administrator
