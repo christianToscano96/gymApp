@@ -1,4 +1,3 @@
-
 import express from "express";
 import cors from "cors";
 import connectDB from "./models/connectDB.js";
@@ -11,7 +10,6 @@ import authMiddleware from "./middleware/auth.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -22,12 +20,14 @@ connectDB();
 app.post("/api/users", async (req, res) => {
   try {
     // Si el usuario ya existe, no sobrescribir el rol
-  const { email, role, phone } = req.body;
+    const { email, role, phone } = req.body;
     const userExists = await User.findOne({ email });
     if (userExists) {
       // No modificar el rol si ya es administrator
       if (userExists.role === "administrator") {
-        return res.status(400).json({ error: "El usuario ya es administrador y no se puede cambiar el rol." });
+        return res.status(400).json({
+          error: "El usuario ya es administrador y no se puede cambiar el rol.",
+        });
       }
       // Si no es administrador, puedes actualizar otros campos pero no el rol
       Object.assign(userExists, req.body, { role: userExists.role });
@@ -44,6 +44,62 @@ app.post("/api/users", async (req, res) => {
 });
 
 // Endpoint para obtener todos los usuarios
+// Endpoint para obtener usuario por ID
+// Endpoint para actualizar usuario por ID
+app.put("/api/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+    // Solo permitir actualizar dueDate si el rol es 'user'
+    if (user.role === "user" && req.body.dueDate !== undefined) {
+      user.dueDate = req.body.dueDate;
+    }
+  // Actualizar otros campos permitidos
+  user.name = req.body.name ?? user.name;
+  user.phone = req.body.phone ?? user.phone;
+  user.email = req.body.email ?? user.email;
+  user.status = req.body.status ?? user.status;
+  user.membership = req.body.membership ?? user.membership;
+  user.lastVisit = req.body.lastVisit ?? user.lastVisit;
+  user.avatar = req.body.avatar ?? user.avatar;
+  user.joinDate = req.body.joinDate ?? user.joinDate;
+  user.qrCode = req.body.qrCode ?? user.qrCode;
+  user.dni = req.body.dni ?? user.dni;
+    // No permitir cambiar el rol ni el password desde aquí
+    await user.save();
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+app.get("/api/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// Endpoint para eliminar usuario por ID
+app.delete("/api/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+    res.status(200).json({ message: "Usuario eliminado correctamente" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 app.get("/api/users", async (req, res) => {
   try {
     const users = await User.find();

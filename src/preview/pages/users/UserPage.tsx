@@ -1,4 +1,6 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search } from "@/components/ui/search";
 // import { getUsers } from "@/fake/fake-data-gym";
@@ -17,6 +19,8 @@ import { useState } from "react";
 import AlertDialog from "@/components/ui/alert-dialog";
 import Modal from "@/components/ui/modal";
 import { useQuery } from "@tanstack/react-query";
+
+import { fetchUsers } from "@/api/userService";
 import { AddUserForm } from "./AddUserForm";
 
 const UsersPage = () => {
@@ -26,14 +30,10 @@ const UsersPage = () => {
 
   const [getIdUser, setGetIdUser] = useState("");
 
-  const fetchUsers = async () => {
-    const res = await fetch("/api/users");
-    if (!res.ok) throw new Error("Error al obtener usuarios");
-    return res.json();
-  };
+  // fetchUsers ahora se importa desde src/api/userService.ts
 
   type User = {
-    id: string;
+    _id: string;
     name: string;
     avatar?: string;
     email: string;
@@ -52,9 +52,18 @@ const UsersPage = () => {
     queryKey: ["users"],
     queryFn: fetchUsers,
     staleTime: 1000 * 60 * 5,
+    refetchInterval: 5000, // Actualiza cada 5 segundos
   });
 
-  console.log(users);
+  const deleteUser = async (id: string) => {
+    const res = await fetch(`/api/users/${id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error("Error al eliminar usuario");
+    toast.success("Usuario eliminado correctamente");
+    refetch();
+  };
+
   return (
     <main className="pl-20 pr-20 pt-10 flex-1 mt-5 bg-white rounded-[20px] shadow-[0_4px_16px_rgba(17,17,26,0.05),0_8px_32px_rgba(17,17,26,0.05)]">
       <div className="flex justify-between items-center ">
@@ -82,7 +91,7 @@ const UsersPage = () => {
           </TableHeader>
           <TableBody>
             {users?.map((user: User) => (
-              <TableRow key={user.id} className="hover:bg-gray-50 ">
+              <TableRow key={user._id} className="hover:bg-gray-50 ">
                 <TableCell></TableCell>
                 <TableCell className="flex items-center gap-2 pt-4">
                   <Avatar
@@ -118,12 +127,13 @@ const UsersPage = () => {
                       className="w-4 h-4 text-gray-500"
                       onClick={() => {
                         setOpenViewUserModal(true);
-                        setGetIdUser(user.id);
+                        setGetIdUser(user._id);
                       }}
                     />
                     <Trash
                       onClick={() => {
                         setOpenDialog(true);
+                        setGetIdUser(user._id);
                       }}
                       className="w-4 h-4 text-gray-500"
                     />
@@ -139,30 +149,41 @@ const UsersPage = () => {
           description="Are you sure you want to delete this user?"
           confirmText="Delete"
           cancelText="Cancel"
-          onConfirm={() => {
+          onConfirm={async () => {
+            await deleteUser(getIdUser);
             setOpenDialog(false);
+            refetch();
           }}
           onCancel={() => setOpenDialog(false)}
         />
         <Modal
           isOpen={openViewUserModal}
           onClose={() => {
-            setOpenViewUserModal(false);
-            refetch();
+              setOpenViewUserModal(false);
           }}
           title="View User"
         >
-          <AddUserForm onSubmit={() => { refetch(); }} id={getIdUser} />
+            <AddUserForm
+              onSubmit={() => {
+                setOpenViewUserModal(false);
+                refetch();
+              }}
+              id={getIdUser}
+            />
         </Modal>
         <Modal
           isOpen={openFormNewUser}
           onClose={() => {
-            setOpenFormNewUser(false);
-            refetch();
+              setOpenFormNewUser(false);
           }}
           title="Add User"
         >
-          <AddUserForm onSubmit={() => { refetch(); }} id="" />
+            <AddUserForm
+              onSubmit={() => {
+                setOpenFormNewUser(false);
+                refetch();
+              }}
+            />
         </Modal>
       </ScrollArea>
     </main>

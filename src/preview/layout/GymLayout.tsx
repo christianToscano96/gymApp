@@ -7,6 +7,7 @@ import Menu from "../components/menu";
 import Avatar from "@/components/ui/avatar";
 
 import { Bell, Settings } from "lucide-react";
+import { Toaster } from "sonner";
 
 interface RentalLayoutProps {
   user?: { name?: string };
@@ -22,6 +23,8 @@ export default function RentalLayout({ user }: RentalLayoutProps) {
 
   return (
     <div className="flex-col h-screen bg-background">
+      <Toaster position="top-center" richColors />
+
       {/* Header */}
       <header className="flex justify-between border-b p-2 items-center pl-10 pr-10">
         <div className="flex items-center gap-2">

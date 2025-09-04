@@ -31,23 +31,14 @@ const PrivateRoute = ({ requiredRole, children }: Props) => {
         <p className="text-lg text-red-500 mb-4">
           No tienes permisos para acceder a esta página.
         </p>
-        <p className="text-sm text-muted-foreground mb-2">
-          Role actual: <b>{user?.role}</b>
-        </p>
+        <p className="text-sm text-muted-foreground mb-2"></p>
         <Navigate
           to={user?.role === "administrator" ? "/preview" : "/user-preview"}
         />
       </div>
     );
   }
-  return (
-    <>
-      <div className="fixed top-2 right-2 bg-gray-100 text-xs px-2 py-1 rounded shadow z-50">
-        Role actual: <b>{user?.role}</b>
-      </div>
-      {children}
-    </>
-  );
+  return <>{children}</>;
 };
 
 export default PrivateRoute;

@@ -7,9 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import placeholderImage from "@/assets/placeholder.svg";
 import { SuccessAlert } from "@/components/ui/success-alert";
-// import { useUser } from "@/context/UserContext";
 import { loginUser } from "@/api/authService";
 
 function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
@@ -217,7 +215,9 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
           </form>
           <div className="relative hidden bg-muted md:block">
             <img
-              src={placeholderImage}
+              src={
+                "https://www.paxinasgalegas.es/imagenes/gimnasios-y-fitness-cambre_img238t6m0w1200h1200.jpg"
+              }
               alt="Image"
               className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
             />

@@ -3,7 +3,7 @@ export interface User {
   name: string
   phone: string
   email: string
-  status: "Activo" | "Vencido"
+  status: "Activo" | "Vencido" | "Pendiente"
   membership: "Básico" | "Premium"
   lastVisit: string
   avatar?: string
@@ -11,7 +11,8 @@ export interface User {
   dueDate: string,
   qrCode: string,
   role: string,
-  password: string
+  password: string,
+  dni: string
 }
 
 export interface AccessLogs  {

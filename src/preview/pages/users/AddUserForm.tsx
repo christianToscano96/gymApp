@@ -1,47 +1,62 @@
 import React, { useState } from "react";
+import { useAvatarResize } from "@/hook/useAvatarResize";
 import type { User } from "@/preview/interfaces/preview.interfaces";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getUser } from "@/fake/fake-data-gym";
 import { useQuery } from "@tanstack/react-query";
 import Badge from "@/components/ui/badge";
+import { fetchUserById } from "@/api/userService";
+import { updateUser, createUser } from "@/api/userService";
+import { toast } from "sonner";
+import { Select } from "@/components/ui/select";
 
 interface AddUserFormProps {
   onSubmit: (user: Omit<User, "id">) => void;
-  id: string | "";
+  id?: string | "";
+  onClose?: () => void;
 }
 
 const initialState: Omit<User, "id"> = {
   name: "",
-  status: "Activo",
   phone: "",
   email: "",
-  avatar: "",
+  status: "Activo",
   membership: "Básico",
   lastVisit: "",
-  dueDate: "",
+  avatar: "",
   joinDate: "",
+  dueDate: "",
   qrCode: "",
   role: "user",
   password: "",
+  dni: "",
 };
 
-export const AddUserForm: React.FC<AddUserFormProps> = ({ onSubmit, id }) => {
-  const { data: user, isLoading } = useQuery({
+export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
+  const {
+    data: user,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["user", id],
-    queryFn: () => getUser(id as string),
+    queryFn: () => fetchUserById(id as string),
     enabled: !!id,
   });
 
   const [form, setForm] = useState<Omit<User, "id">>(initialState);
-
+  const { avatar, setAvatar, handleAvatarChange } = useAvatarResize();
+  // Sincroniza el formulario cuando cambia el id (modo edición/creación)
   React.useEffect(() => {
-    if (user && JSON.stringify(user) !== JSON.stringify(form)) {
-      setForm(user);
-    } else if (!user && JSON.stringify(form) !== JSON.stringify(initialState)) {
+    if (id && user) {
+      setForm({
+        ...user,
+      });
+      setAvatar(user.avatar || "");
+    } else if (!id) {
       setForm(initialState);
+      setAvatar("");
     }
     // eslint-disable-next-line
   }, [user, id]);
@@ -65,6 +80,14 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ onSubmit, id }) => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="max-w-md mx-auto bg-white p-6 space-y-4 text-center text-red-500">
+        Error al obtener el usuario. Por favor, intenta de nuevo.
+      </div>
+    );
+  }
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -75,21 +98,64 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ onSubmit, id }) => {
     }));
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setForm((prev) => ({ ...prev, avatar: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+  // ...eliminado: handleAvatarChange, ahora se usa el hook...
+
+  // Función para guardar el usuario modificado
+  const saveUser = async () => {
+    if (!id) return;
+    try {
+      await updateUser(id, { ...form, avatar });
+      toast.success("Usuario actualizado correctamente");
+    } catch (error) {
+      toast.error("Error al actualizar usuario");
+      console.error("Error al actualizar usuario:", error);
     }
   };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  console.log(form);
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(form);
-    setForm(initialState);
+    if (id) {
+      await saveUser();
+      if (onClose) onClose();
+    } else {
+      try {
+        // Normalizar los valores para que coincidan con el modelo de la BD
+        const normalizedRole = ["administrator", "user", "staff"].includes(
+          form.role
+        )
+          ? form.role
+          : "user";
+        const normalizedStatus =
+          form.status === "Activo"
+            ? "activo"
+            : form.status === "Vencido"
+            ? "vencido"
+            : form.status === "Pendiente"
+            ? "pendiente"
+            : "activo";
+        const normalizedMembership =
+          typeof form.membership === "string" &&
+          !["Básico", "Premium"].includes(form.membership)
+            ? form.membership
+            : "";
+        // Obtener los últimos 4 dígitos del dni para la contraseña
+        await createUser({
+          ...form,
+          avatar,
+          role: normalizedRole as "administrator" | "user" | "staff",
+          status: normalizedStatus as "activo" | "vencido" | "pendiente",
+          membership: normalizedMembership,
+          password: form.dni ? form.dni.slice(-4) : "",
+        });
+        toast.success("Usuario creado correctamente");
+        setForm(initialState);
+        setAvatar("");
+        if (onClose) onClose();
+      } catch (error) {
+        toast.error("Error al crear usuario");
+        console.error("Error al crear usuario:", error);
+      }
+    }
   };
 
   return (
@@ -100,9 +166,9 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ onSubmit, id }) => {
       <div className="flex flex-col items-center">
         <label htmlFor="avatar" className="cursor-pointer">
           <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-gray-100">
-            {form.avatar ? (
+            {avatar ? (
               <img
-                src={form.avatar}
+                src={avatar}
                 alt="Avatar"
                 className="object-cover w-full h-full"
               />
@@ -134,7 +200,29 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ onSubmit, id }) => {
         />
       </div>
 
-      {id ? (
+      {id === undefined || id === null ? (
+        <div className="mt-1">
+          <Label className="block text-sm font-medium text-gray-700">
+            Estado
+          </Label>
+          <Select
+            options={[
+              { label: "Activo", value: "Activo" },
+              { label: "Pendiente", value: "Pendiente" },
+              { label: "Vencido", value: "Vencido" },
+            ]}
+            value={form.status}
+            onChange={(value) =>
+              setForm((prev) => ({
+                ...prev,
+                status: value as "Activo" | "Pendiente" | "Vencido",
+              }))
+            }
+            placeholder="Selecciona estado"
+            className="w-full"
+          />
+        </div>
+      ) : (
         <div className="flex items-center justify-start gap-5 mt-5">
           <div>
             <Label className="block text-sm font-medium text-gray-700">
@@ -142,29 +230,6 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ onSubmit, id }) => {
             </Label>
             <Badge status={form.status}>{form.status}</Badge>
           </div>
-          <div>
-            <Label className="block text-sm font-medium text-gray-700">
-              Membership
-            </Label>
-            <Badge status={form.membership}>{form.membership}</Badge>
-          </div>
-        </div>
-      ) : (
-        <div>
-          {" "}
-          <Label className="block text-sm font-medium text-gray-700">
-            Estado
-          </Label>
-          <select
-            name="status"
-            value={form.status}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          >
-            <option value="activo">Activo</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="vencido">Vencido</option>
-          </select>
         </div>
       )}
 
@@ -192,21 +257,38 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ onSubmit, id }) => {
           required
         />
       </div>
-      <div>
-        <Label className="block text-sm font-medium text-gray-700">
-          Fecha de vencimiento
-        </Label>
-        <Input
-          type="date"
-          name="dueDate"
-          value={form.dueDate}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          required
-        />
-      </div>
+      {form.role !== "administrator" && (
+        <>
+          <div>
+            <Label className="block text-sm font-medium text-gray-700">
+              DNI
+            </Label>
+            <Input
+              type="text"
+              name="dni"
+              value={form.dni}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              required
+            />
+          </div>
+          <div>
+            <Label className="block text-sm font-medium text-gray-700">
+              Fecha de vencimiento
+            </Label>
+            <Input
+              type="date"
+              name="dueDate"
+              value={form.dueDate || ""}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              required
+            />
+          </div>
+        </>
+      )}
       <Button type="submit" className="w-full py-2 px-4 transition mt-4">
-        submit
+        {id ? "Actualizar usuario" : "Crear usuario"}
       </Button>
     </form>
   );
