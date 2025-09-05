@@ -24,6 +24,7 @@ export const createUser = async (userData: {
   phone: string;
   dni?: string;
   role?: "administrator" | "user" | "staff";
+  joinDate: string | null;
   dueDate?: string | null;
   membership?: string; // id de Payment
   lastVisit?: string | null;

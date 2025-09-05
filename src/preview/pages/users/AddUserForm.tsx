@@ -13,12 +13,11 @@ import { toast } from "sonner";
 import { Select } from "@/components/ui/select";
 
 interface AddUserFormProps {
-  onSubmit: (user: Omit<User, "id">) => void;
   id?: string | "";
   onClose?: () => void;
 }
 
-const initialState: Omit<User, "id"> = {
+const initialState: Omit<User, "_id"> = {
   name: "",
   phone: "",
   email: "",
@@ -45,7 +44,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
     enabled: !!id,
   });
 
-  const [form, setForm] = useState<Omit<User, "id">>(initialState);
+  const [form, setForm] = useState<Omit<User, "_id">>(initialState);
   const { avatar, setAvatar, handleAvatarChange } = useAvatarResize();
   // Sincroniza el formulario cuando cambia el id (modo edición/creación)
   React.useEffect(() => {
@@ -104,14 +103,13 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   const saveUser = async () => {
     if (!id) return;
     try {
-      await updateUser(id, { ...form, avatar });
+  await updateUser(id, { ...form, avatar, _id: id });
       toast.success("Usuario actualizado correctamente");
     } catch (error) {
       toast.error("Error al actualizar usuario");
       console.error("Error al actualizar usuario:", error);
     }
   };
-  console.log(form);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (id) {
@@ -274,12 +272,12 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           </div>
           <div>
             <Label className="block text-sm font-medium text-gray-700">
-              Fecha de vencimiento
+              Fecha de Ingreso
             </Label>
             <Input
               type="date"
-              name="dueDate"
-              value={form.dueDate || ""}
+              name="joinDate"
+              value={form.joinDate || ""}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               required

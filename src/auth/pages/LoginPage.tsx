@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useUserStore } from "@/hook/useUserStore";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,8 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
   const [showSuccess, setShowSuccess] = React.useState(false);
   const [successMsg, setSuccessMsg] = React.useState("");
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  // Elimina queryClient, usa Zustand
+  const setUser = useUserStore((state) => state.setUser);
   // Eliminado setUser de UserContext
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -33,29 +34,14 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
         setIsPending(false);
         return;
       }
-      // Guardar usuario en localStorage y contexto
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.user.role);
-      if (data.user.name) localStorage.setItem("name", data.user.name);
-      if (data.user.email) localStorage.setItem("email", data.user.email);
-      if (data.user.phone) localStorage.setItem("phone", data.user.phone);
-      // Guardar usuario en TanStack Query
-      queryClient.setQueryData(["user"], {
+      // Guardar usuario en Zustand
+      setUser({
         id: data.user.id,
         name: data.user.name,
         email: data.user.email,
-        phone: data.user.phone,
-        status: "activo",
-        membership: data.user.membership,
-        lastVisit: data.user.lastVisit,
-        avatar: data.user.avatar,
-        joinDate: data.user.joinDate,
-        dueDate: data.user.dueDate,
-        qrCode: data.user.qrCode,
-        role: data.user.role,
         token: data.token,
+        role: data.user.role,
       });
-      queryClient.invalidateQueries({});
       setSuccessMsg("Inicio de sesión exitoso");
       setShowSuccess(true);
       // Redirigir según el rol

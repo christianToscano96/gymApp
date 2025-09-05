@@ -1,29 +1,12 @@
 import { Navigate } from "react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useUserStore } from "@/hook/useUserStore";
 
 interface Props {
   requiredRole?: "administrator" | "user";
   children: React.ReactNode;
 }
 const PrivateRoute = ({ requiredRole, children }: Props) => {
-  const queryClient = useQueryClient();
-  type UserType = {
-    id?: string;
-    name?: string;
-    phone?: string;
-    email?: string;
-    status?: "Activo" | "Vencido";
-    membership?: "Básico" | "Premium";
-    lastVisit?: string;
-    avatar?: string;
-    joinDate?: string;
-    dueDate?: string;
-    qrCode?: string;
-    role?: "administrator" | "user";
-    password?: string;
-    token?: string;
-  };
-  const user = queryClient.getQueryData(["user"]) as UserType | undefined;
+  const user = useUserStore((state) => state.user);
   if (!user) return <Navigate to="/auth" />;
   if (requiredRole && user?.role !== requiredRole) {
     return (

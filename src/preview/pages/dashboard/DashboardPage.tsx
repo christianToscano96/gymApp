@@ -19,7 +19,7 @@ import { StatsChart } from "@/components/ui/stats-charts";
 import { ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from "recharts";
 const DashboarPage = () => {
   return (
-    <main className="w-full min-h-screen flex-1 bg-white sm:rounded-[20px] sm:shadow-[0_4px_16px_rgba(17,17,26,0.05),0_8px_32px_rgba(17,17,26,0.05)] pb-30">
+    <main className="w-full min-h-screen flex-1 sm:rounded-[20px]  pb-30">
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 px-2 sm:px-0 pt-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

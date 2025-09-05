@@ -16,8 +16,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
       <div
         className="relative mx-4 bg-white rounded-2xl shadow-lg flex flex-col"
         style={{
-          width: "70vw",
-          height: "90vh",
+          width: "30vw",
+          height: "85vh",
           maxWidth: "900px",
           minWidth: "300px",
         }}

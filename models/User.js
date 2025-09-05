@@ -17,6 +17,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  joinDate: {
+    type: String,
+    default: null,
+  },
   membership: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
   lastVisit: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },

@@ -22,6 +22,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { fetchUsers } from "@/api/userService";
 import { AddUserForm } from "./AddUserForm";
+import type { User } from "@/preview/interfaces/preview.interfaces";
 
 const UsersPage = () => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -29,20 +30,6 @@ const UsersPage = () => {
   const [openFormNewUser, setOpenFormNewUser] = useState(false);
 
   const [getIdUser, setGetIdUser] = useState("");
-
-  // fetchUsers ahora se importa desde src/api/userService.ts
-
-  type User = {
-    _id: string;
-    name: string;
-    avatar?: string;
-    email: string;
-    phone: string;
-    status: string;
-    //membership: string;
-    lastVisit: string;
-    role: string;
-  };
 
   const {
     data: users,
@@ -85,6 +72,8 @@ const UsersPage = () => {
               <TableHead>Contacto</TableHead>
               <TableHead>Rol</TableHead>
               <TableHead>Estado</TableHead>
+              <TableHead>Fecha de Ingreso</TableHead>
+              <TableHead>Fecha de Vencimiento</TableHead>
               <TableHead>Última Visita</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -113,14 +102,25 @@ const UsersPage = () => {
                   </div>
                 </TableCell>
                 <TableCell>{user.role || "-"}</TableCell>
-
                 <TableCell>
                   <Badge status={user.status}>{user.status}</Badge>
                 </TableCell>
-                <TableCell className="flex items-center gap-2 text-gray-500 pb-3">
-                  <Calendar className="w-3 h-3" /> {user.lastVisit}
+                <TableCell className="flex-1 text-gray-500 ">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3 h-3" /> {user.joinDate || "231232"}
+                  </div>
                 </TableCell>
-
+                <TableCell className="flex-1  text-gray-500 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3 h-3" /> {user.dueDate || "231232"}
+                  </div>
+                </TableCell>
+                <TableCell className="flex-1  text-gray-500 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3 h-3" />{" "}
+                    {user.lastVisit || "231232"}
+                  </div>
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <SquarePen
@@ -159,31 +159,31 @@ const UsersPage = () => {
         <Modal
           isOpen={openViewUserModal}
           onClose={() => {
-              setOpenViewUserModal(false);
+            setOpenViewUserModal(false);
           }}
           title="View User"
         >
-            <AddUserForm
-              onSubmit={() => {
-                setOpenViewUserModal(false);
-                refetch();
-              }}
-              id={getIdUser}
-            />
+          <AddUserForm
+            onClose={() => {
+              setOpenViewUserModal(false);
+              refetch();
+            }}
+            id={getIdUser}
+          />
         </Modal>
         <Modal
           isOpen={openFormNewUser}
           onClose={() => {
-              setOpenFormNewUser(false);
+            setOpenFormNewUser(false);
           }}
           title="Add User"
         >
-            <AddUserForm
-              onSubmit={() => {
-                setOpenFormNewUser(false);
-                refetch();
-              }}
-            />
+          <AddUserForm
+            onClose={() => {
+              setOpenFormNewUser(false);
+              refetch();
+            }}
+          />
         </Modal>
       </ScrollArea>
     </main>
