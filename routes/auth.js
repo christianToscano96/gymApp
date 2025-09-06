@@ -28,6 +28,7 @@ router.post("/register", async (req, res) => {
       role,
       phone,
       dni,
+      joinDate: new Date(),
     });
     await user.save();
     // Si quieres devolver también un token, puedes generarlo aquí
@@ -50,8 +51,8 @@ router.post("/register", async (req, res) => {
         avatar: user.avatar || null,
         lastVisit: user.lastVisit || null,
         dueDate: user.dueDate || null,
+        joinDate: user.joinDate,
         qrCode: user.qrCode || "",
-        
       },
     });
   } catch (err) {

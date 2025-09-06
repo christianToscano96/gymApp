@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search } from "@/components/ui/search";
-// import { getUsers } from "@/fake/fake-data-gym";
 import {
   Table,
   TableHeader,
@@ -107,14 +106,25 @@ const UsersPage = () => {
                 </TableCell>
                 <TableCell className="flex-1 text-gray-500 ">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-3 h-3" /> {user.joinDate || "231232"}
+                    <Calendar className="w-3 h-3" />{" "}
+                    {user.joinDate
+                      ? new Date(user.joinDate).toISOString().slice(0, 10)
+                      : "-"}
                   </div>
                 </TableCell>
-                <TableCell className="flex-1  text-gray-500 pb-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-3 h-3" /> {user.dueDate || "231232"}
-                  </div>
-                </TableCell>
+                {user.role !== "administrator" ? (
+                  <TableCell className="flex-1  text-gray-500 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-3 h-3" />{" "}
+                      {user.dueDate || "231232"}
+                    </div>
+                  </TableCell>
+                ) : (
+                  <TableCell className="flex-1  text-gray-500 pb-3">
+                    <div className="flex items-center gap-2"></div>
+                  </TableCell>
+                )}
+
                 <TableCell className="flex-1  text-gray-500 pb-3">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-3 h-3" />{" "}

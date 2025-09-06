@@ -18,8 +18,8 @@ const userSchema = new mongoose.Schema({
     default: null,
   },
   joinDate: {
-    type: String,
-    default: null,
+    type: Date,
+    default: Date.now,
   },
   membership: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
   lastVisit: { type: String, default: null },
