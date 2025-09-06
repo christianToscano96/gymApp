@@ -53,7 +53,15 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password, role: safeRole, phone, status: "activo" }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          role: safeRole,
+          phone,
+          dni: "", // puedes agregar un input si lo necesitas
+          dueDate: "" // puedes agregar un input si lo necesitas
+        }),
       });
       if (!response.ok) {
         let errorMsg = "Error al registrar";

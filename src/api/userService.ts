@@ -31,18 +31,28 @@ export const createUser = async (userData: {
   status?: "activo" | "vencido" | "pendiente";
   avatar?: string | null;
 }) => {
-  const res = await fetch("/api/auth/register", {
+  // Solo enviar los campos requeridos por el backend
+  const payload = {
+    name: userData.name,
+    email: userData.email,
+    password: userData.password,
+    role: userData.role,
+    phone: userData.phone || "",
+    dni: userData.dni || "",
+    dueDate: userData.dueDate || null,
+  };
+  const res = await fetch("http://localhost:5050/api/auth/register", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(userData),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) {
     let errorMsg = "Error al crear usuario";
     try {
       const errorData = await res.json();
-      if (errorData?.message) errorMsg = errorData.message;
+      if (errorData?.error) errorMsg = errorData.error;
     } catch (e) {
       console.log(e)
     }

@@ -16,8 +16,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
       <div
         className="relative mx-4 bg-white rounded-2xl shadow-lg flex flex-col"
         style={{
-          width: "30vw",
-          height: "85vh",
+          width: "35vw",
+          height: "90vh",
           maxWidth: "900px",
           minWidth: "300px",
         }}
@@ -36,7 +36,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
         )}
         <div
           className="p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 h-full"
-          style={{ height: "calc(90vh - 64px)" }}
+          style={{ height: "calc(100vh - 64px)" }}
         >
           {children}
         </div>

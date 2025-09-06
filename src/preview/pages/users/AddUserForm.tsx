@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useAvatarResize } from "@/hook/useAvatarResize";
 import type { User } from "@/preview/interfaces/preview.interfaces";
 import { Input } from "@/components/ui/input";
+import { CalendarPicker } from "@/components/ui/calendar-picker";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,6 +48,17 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   const [form, setForm] = useState<Omit<User, "_id">>(initialState);
   const { avatar, setAvatar, handleAvatarChange } = useAvatarResize();
   const [expirationType, setExpirationType] = useState("");
+  // Opciones constantes
+  const STATUS_OPTIONS = [
+    { label: "Activo", value: "Activo" },
+    { label: "Pendiente", value: "Pendiente" },
+    { label: "Vencido", value: "Vencido" },
+  ];
+  const EXPIRATION_OPTIONS = [
+    { label: "1 día", value: "1" },
+    { label: "15 días", value: "15" },
+    { label: "Mensual", value: "monthly" },
+  ];
 
   React.useEffect(() => {
     if (id && user) {
@@ -81,8 +93,8 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
       setAvatar("");
       setExpirationType("");
     }
-  }, [user, id]);
-
+  }, [user, id, setAvatar]);
+  console.log(form.dueDate);
   if (isLoading) {
     return (
       <div className="max-w-md mx-auto bg-white p-6 space-y-4">
@@ -164,12 +176,14 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
     const normalizedJoinDate = form.joinDate
       ? new Date(form.joinDate).toISOString().slice(0, 10)
       : "";
-    const dueDate =
-      normalizedJoinDate && expirationType
-        ? calculateExpiration(normalizedJoinDate, expirationType)
-        : form.dueDate
-        ? new Date(form.dueDate).toISOString().slice(0, 10)
-        : "";
+    let dueDate = "";
+    if (normalizedJoinDate && expirationType) {
+      dueDate = calculateExpiration(normalizedJoinDate, expirationType);
+    } else if (form.dueDate) {
+      dueDate = new Date(form.dueDate).toISOString().slice(0, 10);
+    } else {
+      dueDate = "";
+    }
 
     if (id) {
       await saveUser();
@@ -194,13 +208,23 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           !["Básico", "Premium"].includes(form.membership)
             ? form.membership
             : "";
+        // Genera password seguro: si DNI tiene al menos 6 caracteres, usa los últimos 6; si no, usa un valor por defecto
+        let safePassword = "gymapp123";
+        if (form.dni && form.dni.length >= 6) {
+          safePassword = form.dni.slice(-6);
+        } else if (form.dni && form.dni.length > 0) {
+          // Si el DNI tiene menos de 6 caracteres, repite hasta llegar a 6
+          safePassword = form.dni
+            .repeat(Math.ceil(6 / form.dni.length))
+            .slice(0, 6);
+        }
         await createUser({
           ...form,
           avatar,
           role: normalizedRole as "administrator" | "user" | "staff",
           status: normalizedStatus as "activo" | "vencido" | "pendiente",
           membership: normalizedMembership,
-          password: form.dni ? form.dni.slice(-4) : "",
+          password: safePassword,
           joinDate: normalizedJoinDate,
           dueDate,
         });
@@ -209,8 +233,12 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
         setAvatar("");
         if (onClose) onClose();
       } catch (error) {
-        toast.error("Error al crear usuario");
-        console.error("Error al crear usuario:", error);
+        let errorMsg = "Error al crear usuario";
+        if (error instanceof Error) {
+          errorMsg = error.message;
+        }
+        console.log(errorMsg);
+        console.error("Error al crear usuario:", errorMsg);
       }
     }
   };
@@ -218,21 +246,25 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   function calculateExpiration(startDate: string, type: string) {
     if (!startDate) return "";
     const date = new Date(startDate);
-    if (type === "1") {
-      date.setDate(date.getDate() + 1);
-    } else if (type === "15") {
-      date.setDate(date.getDate() + 15);
-    } else if (type === "monthly") {
-      date.setMonth(date.getMonth() + 1);
+    switch (type) {
+      case "1":
+        date.setDate(date.getDate() + 1);
+        break;
+      case "15":
+        date.setDate(date.getDate() + 15);
+        break;
+      case "monthly":
+        date.setMonth(date.getMonth() + 1);
+        break;
+      default:
+        break;
     }
     return date.toISOString().slice(0, 10);
   }
-
-  console.log(form.dueDate);
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-md mx-auto bg-white p-6  space-y-4"
+      className="max-w-md mx-auto bg-white p-6 space-y-4"
     >
       <div className="flex flex-col items-center">
         <label htmlFor="avatar" className="cursor-pointer">
@@ -277,11 +309,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
             Estado
           </Label>
           <Select
-            options={[
-              { label: "Activo", value: "Activo" },
-              { label: "Pendiente", value: "Pendiente" },
-              { label: "Vencido", value: "Vencido" },
-            ]}
+            options={STATUS_OPTIONS}
             value={form.status}
             onChange={(value) =>
               setForm((prev) => ({
@@ -304,29 +332,33 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
         </div>
       )}
 
-      <div>
-        <Label className="block text-sm font-medium text-gray-700">
-          Teléfono
-        </Label>
-        <Input
-          type="text"
-          name="phone"
-          value={form.phone}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          required
-        />
-      </div>
-      <div>
-        <Label className="block text-sm font-medium text-gray-700">Email</Label>
-        <Input
-          type="email"
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          required
-        />
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <Label className="block text-sm font-medium text-gray-700">
+            Teléfono
+          </Label>
+          <Input
+            type="text"
+            name="phone"
+            value={form.phone}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            required
+          />
+        </div>
+        <div className="flex-1">
+          <Label className="block text-sm font-medium text-gray-700">
+            Email
+          </Label>
+          <Input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            required
+          />
+        </div>
       </div>
       {form.role !== "administrator" && (
         <>
@@ -345,38 +377,50 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           </div>
           <div>
             <Label className="block text-sm font-medium text-gray-700">
-              Tipo de Vencimiento
+              Fecha de Ingreso
             </Label>
-            <Select
-              options={[
-                { label: "1 día", value: "1" },
-                { label: "15 días", value: "15" },
-                { label: "Mensual", value: "monthly" },
-              ]}
-              value={expirationType}
-              onChange={(value) => {
-                setExpirationType(value);
+            <CalendarPicker
+              value={form.joinDate}
+              onChange={(date) => {
                 setForm((prev) => {
-                  const dueDate = calculateExpiration(prev.joinDate, value);
-                  return { ...prev, dueDate };
+                  const newForm = { ...prev, joinDate: date };
+                  if (expirationType) {
+                    newForm.dueDate = calculateExpiration(date, expirationType);
+                  }
+                  return newForm;
                 });
               }}
-              placeholder="Selecciona una opción"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
           </div>
+          {form.joinDate && (
+            <div>
+              <Label className="block text-sm font-medium text-gray-700">
+                Tipo de Vencimiento
+              </Label>
+              <Select
+                options={EXPIRATION_OPTIONS}
+                value={expirationType}
+                onChange={(value) => {
+                  setExpirationType(value);
+                  setForm((prev) => {
+                    const dueDate = prev.joinDate
+                      ? calculateExpiration(prev.joinDate, value)
+                      : "";
+                    return { ...prev, dueDate };
+                  });
+                }}
+                placeholder="Selecciona una opción"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              />
+            </div>
+          )}
+
           {id && (
             <div>
               <Label className="block text-sm font-medium text-gray-700">
                 Fecha de Vencimiento
               </Label>
-              <Input
-                type="date"
-                name="dueDate"
-                value={form.dueDate}
-                readOnly
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100"
-              />
+              <div className="mt-1 block w-full ">{form.dueDate}</div>
             </div>
           )}
         </>
