@@ -1,9 +1,16 @@
-import mongoose from 'mongoose';
+import { Phone } from "lucide-react";
+import mongoose from "mongoose";
 const staffSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  position: String,
-  phone: String,
-  createdAt: { type: Date, default: Date.now }
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  role: { type: String, required: true },
+  avatar: { type: String },
+  phone: { type: String },
+  status: {
+    type: String,
+    enum: ["activo", "inactivo"],
+    default: "activo",
+  },
 });
-export default mongoose.model('Staff', staffSchema);
+export default mongoose.model("Staff", staffSchema);

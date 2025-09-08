@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Search } from "@/components/ui/search";
-import { mockStaff } from "@/fake/fake-data-gym";
+import { useStaffList } from "@/api/staffService";
 import {
   Table,
   TableHeader,
@@ -16,12 +16,14 @@ import Avatar from "@/components/ui/avatar";
 import { useState } from "react";
 import Modal from "@/components/ui/modal";
 import AlertDialog from "@/components/ui/alert-dialog";
+import AddStaffFrom from "./AddStaffFrom";
 
 const StaffPage = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openViewStaffModal, setOpenViewStaffModal] = useState(false);
   const [openFormNewStaff, setOpenFormNewStaff] = useState(false);
   const [getIdStaff, setGetIdStaff] = useState("");
+  const { data: staffList, isLoading, isError } = useStaffList();
 
   return (
     <main className="p-4 flex-1 pl-10 pr-10 mt-5">
@@ -36,60 +38,68 @@ const StaffPage = () => {
         </Button>
       </div>
       <ScrollArea className="h-[calc(80vh-0px)] p-10">
-        <Table className="w-full pl-4 ">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {mockStaff.map(
-              ({ id, avatar, name, role, status, email, phone }) => (
-                <TableRow key={id}>
-                  <TableCell className="flex items-center gap-3">
-                    <Avatar size="sm" src={avatar} alt={name} />
-                    {name}
-                  </TableCell>
-                  <TableCell>{role}</TableCell>
-                  <TableCell>
-                    <Badge status={status}>{status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1 text-gray-500">
-                      <span className="flex items-center gap-2">
-                        <Mail className="w-3 h-3" /> {email}
-                      </span>
-                      <span className="flex items-center gap-2">
-                        <Phone className="w-3 h-3" /> {phone}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <SquarePen
-                        className="w-4 h-4 text-gray-500"
-                        onClick={() => {
-                          setOpenViewStaffModal(true);
-                          setGetIdStaff(id);
-                        }}
-                      />
-                      <Trash
-                        onClick={() => {
-                          setOpenDialog(true);
-                        }}
-                        className="w-4 h-4 text-gray-500"
-                      />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )
-            )}
-          </TableBody>
-        </Table>
+        {isLoading ? (
+          <div className="text-center py-10">Cargando staff...</div>
+        ) : isError ? (
+          <div className="text-center py-10 text-red-500">
+            Error al cargar staff
+          </div>
+        ) : (
+          <Table className="w-full pl-4 ">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(staffList ?? []).map(
+                ({ _id, avatar, name, role, status, email, phone }) => (
+                  <TableRow key={_id}>
+                    <TableCell className="flex items-center gap-3">
+                      <Avatar size="sm" src={avatar} alt={name} />
+                      {name}
+                    </TableCell>
+                    <TableCell>{role}</TableCell>
+                    <TableCell>
+                      <Badge status={status}>{status}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1 text-gray-500">
+                        <span className="flex items-center gap-2">
+                          <Mail className="w-3 h-3" /> {email}
+                        </span>
+                        <span className="flex items-center gap-2">
+                          <Phone className="w-3 h-3" /> {phone}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <SquarePen
+                          className="w-4 h-4 text-gray-500"
+                          onClick={() => {
+                            setOpenViewStaffModal(true);
+                            setGetIdStaff(_id ?? "");
+                          }}
+                        />
+                        <Trash
+                          onClick={() => {
+                            setOpenDialog(true);
+                          }}
+                          className="w-4 h-4 text-gray-500"
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              )}
+            </TableBody>
+          </Table>
+        )}
         <AlertDialog
           isOpen={openDialog}
           title="Confirm Deletion"
@@ -105,16 +115,16 @@ const StaffPage = () => {
         <Modal
           isOpen={openViewStaffModal}
           onClose={() => setOpenViewStaffModal(false)}
-          title="View Staff"
+          title="Edit Staff"
         >
-          hola{" "}
+          <AddStaffFrom staffId={getIdStaff} />
         </Modal>
         <Modal
           isOpen={openFormNewStaff}
           onClose={() => setOpenFormNewStaff(false)}
           title="Add Staff"
         >
-          hola{" "}
+          <AddStaffFrom />
         </Modal>
       </ScrollArea>
     </main>
