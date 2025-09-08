@@ -1,5 +1,5 @@
 import { sleep } from "@/lib/sleep";
-import type { Staff,AccessLogs, User,Payments } from "@/preview/interfaces/preview.interfaces"
+import type { AccessLogs, User,Payments } from "@/preview/interfaces/preview.interfaces"
 
 
 export const mockUsers: User[] = [
@@ -100,35 +100,7 @@ export const accessLogs: AccessLogs[] = [
 ]
 
 
-export const mockStaff: Staff[] = [
-  {
-    id: "1",
-    name: "Juan Pérez",
-    role: "Administrador",
-    phone: "+1 234-567-8904",
-    email: "juan@company.com",
-    status: "active",
-    avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-  },
-  {
-    id: "2",
-    name: "Laura Silva",
-    role: "Mantenimiento",
-    phone: "+1 234-567-8905",
-    email: "laura@company.com",
-    status: "active",
-    avatar: "https://randomuser.me/api/portraits/women/2.jpg",
-  },
-  {
-    id: "3",
-    name: "Roberto López",
-    role: "Seguridad",
-    phone: "+1 234-567-8906",
-    email: "roberto@company.com",
-    status: "inactive",
-    avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-  },
-]
+
 
 
 export const stats = {

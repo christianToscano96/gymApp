@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import connectDB from "./models/connectDB.js";
 import User from "./models/User.js";
-import staffRoutes from "./routes/staff.js";
 import paymentRoutes from "./routes/payments.js";
 import accessLogRoutes from "./routes/accessLogs.js";
 import authRoutes from "./routes/auth.js";
@@ -57,17 +56,17 @@ app.put("/api/users/:id", async (req, res) => {
     if (user.role === "user" && req.body.dueDate !== undefined) {
       user.dueDate = req.body.dueDate;
     }
-  // Actualizar otros campos permitidos
-  user.name = req.body.name ?? user.name;
-  user.phone = req.body.phone ?? user.phone;
-  user.email = req.body.email ?? user.email;
-  user.status = req.body.status ?? user.status;
-  user.membership = req.body.membership ?? user.membership;
-  user.lastVisit = req.body.lastVisit ?? user.lastVisit;
-  user.avatar = req.body.avatar ?? user.avatar;
-  user.joinDate = req.body.joinDate ?? user.joinDate;
-  user.qrCode = req.body.qrCode ?? user.qrCode;
-  user.dni = req.body.dni ?? user.dni;
+    // Actualizar otros campos permitidos
+    user.name = req.body.name ?? user.name;
+    user.phone = req.body.phone ?? user.phone;
+    user.email = req.body.email ?? user.email;
+    user.status = req.body.status ?? user.status;
+    user.membership = req.body.membership ?? user.membership;
+    user.lastVisit = req.body.lastVisit ?? user.lastVisit;
+    user.avatar = req.body.avatar ?? user.avatar;
+    user.joinDate = req.body.joinDate ?? user.joinDate;
+    user.qrCode = req.body.qrCode ?? user.qrCode;
+    user.dni = req.body.dni ?? user.dni;
     // No permitir cambiar el rol ni el password desde aquí
     await user.save();
     res.status(200).json(user);
@@ -110,7 +109,6 @@ app.get("/api/users", async (req, res) => {
 });
 
 // Rutas adicionales
-app.use("/api/staff", staffRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/access-logs", accessLogRoutes);
 app.use("/api/auth", authRoutes);

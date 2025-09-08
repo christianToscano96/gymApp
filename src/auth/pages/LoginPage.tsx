@@ -42,10 +42,12 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
         token: data.token,
         role: data.user.role,
       });
+      // Guardar el id en localStorage para TanStack Query
+      localStorage.setItem("userId", data.user.id);
       setSuccessMsg("Inicio de sesión exitoso");
       setShowSuccess(true);
       // Redirigir según el rol
-      if (data.user.role === "administrator") {
+      if (data.user.role === "administrator" || data.user.role === "staff") {
         navigate("/preview", { replace: true });
       } else if (data.user.role === "user") {
         navigate("/user-preview", { replace: true });

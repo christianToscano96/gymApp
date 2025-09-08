@@ -1,4 +1,3 @@
-import StaffPage from "./preview/pages/staff/StaffPage";
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -169,14 +168,6 @@ function AppRouter() {
             element={
               <Suspense fallback={<div>Cargando...</div>}>
                 <PaymentManagement />
-              </Suspense>
-            }
-          />
-          <Route
-            path="staff"
-            element={
-              <Suspense fallback={<div>Cargando...</div>}>
-                <StaffPage />
               </Suspense>
             }
           />
