@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import QrScanner from "@/preview/components/QrScanner";
+import ZxingQrScanner from "@/preview/components/ZxingQrScanner";
 import type { User } from "@/preview/interfaces/preview.interfaces";
 import {
   Card,
@@ -138,8 +138,8 @@ const QrAccessControl = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {showScanner && !scannedUser && (
-              <div className="flex flex-col items-center justify-center h-44 bg-muted rounded-lg border-2 border-dashed">
-                <QrScanner onScan={handleScan} stopScanning={!showScanner} />
+              <div className="flex flex-col items-center justify-center min-h-44 bg-muted rounded-lg border-2 border-dashed p-4">
+                <ZxingQrScanner onScan={handleScan} stopScanning={!showScanner} videoStyle={{ width: "100%", borderRadius: 8, maxHeight: 220 }} />
               </div>
             )}
 
