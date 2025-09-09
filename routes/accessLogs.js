@@ -5,7 +5,11 @@ const router = express.Router();
 // Registrar acceso
 router.post('/', async (req, res) => {
   try {
-    const log = new AccessLog(req.body);
+    const { userId, status, name, avatar } = req.body;
+    if (!userId || !status) {
+      return res.status(400).json({ error: 'userId y status son requeridos' });
+    }
+    const log = new AccessLog({ userId, status, name, avatar });
     await log.save();
     res.status(201).json(log);
   } catch (err) {

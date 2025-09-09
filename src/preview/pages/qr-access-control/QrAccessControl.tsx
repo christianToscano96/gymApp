@@ -22,40 +22,43 @@ import {
 import { QrCode, CheckCircle, XCircle, Search, Clock } from "lucide-react";
 import Avatar from "@/components/ui/avatar";
 import { fetchUsers } from "@/api/userService";
+import { useLogUserAccess } from "@/api/accessLogService";
+import { useAccessLogs } from "@/api/accessLogService";
 import { fetchUserByQrCode } from "@/api/userService";
 import { toast } from "sonner";
 
 interface ScannedUser {
   name: string;
-  membership: string;
   status: string;
   lastPayment: string;
   photo: string;
 }
 
 const QrAccessControl = () => {
+  const {
+    data: accessLogs,
+    isLoading: logsLoading,
+    error: logsError,
+    refetch: refetchAccessLogs,
+  } = useAccessLogs();
+  const logAccessMutation = useLogUserAccess();
   const [searchTerm, setSearchTerm] = useState("");
   const [scannedUser, setScannedUser] = useState<ScannedUser | null>(null);
 
   const [users, setUsers] = useState<User[]>([]);
-  const [filteredLogs, setFilteredLogs] = useState<User[]>([]);
 
+  console.log(accessLogs);
   useEffect(() => {
     fetchUsers().then((data: User[]) => {
       const onlyUsers = data.filter(
         (user) => user.role !== "administrator" && user.role !== "staff"
       );
       setUsers(onlyUsers);
-      setFilteredLogs(onlyUsers);
     });
   }, []);
 
   useEffect(() => {
-    setFilteredLogs(
-      users.filter((user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
+    // Ya no se filtran logs aquí
   }, [searchTerm, users]);
 
   // El escaneo ahora se maneja en QrScanner
@@ -64,7 +67,6 @@ const QrAccessControl = () => {
       const user = await fetchUserByQrCode(decodedText);
       setScannedUser({
         name: user.name,
-        membership: user.membership,
         status: user.status,
         lastPayment: user.dueDate,
         photo: user.avatar,
@@ -77,10 +79,29 @@ const QrAccessControl = () => {
 
   const handleAccess = (allowed: boolean) => {
     if (scannedUser) {
-      // Here you would typically save the access log
-      console.log(
-        `Access ${allowed ? "granted" : "denied"} for ${scannedUser.name}`
-      );
+      const status = allowed ? "permitido" : "denegado";
+      const user = users.find((u) => u.name === scannedUser.name);
+      if (user) {
+        logAccessMutation.mutate(
+          {
+            userId: user._id,
+            status,
+            name: scannedUser.name,
+            avatar: scannedUser.photo,
+          },
+          {
+            onSuccess: () => {
+              toast.success(
+                `Acceso ${allowed ? "permitido" : "denegado"} guardado`
+              );
+              refetchAccessLogs(); // Actualiza la tabla de accesos
+            },
+            onError: () => {
+              toast.error("Error al guardar el acceso");
+            },
+          }
+        );
+      }
       setScannedUser(null);
     }
   };
@@ -225,25 +246,53 @@ const QrAccessControl = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredLogs.map((user) => (
-                  <TableRow key={user._id}>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <Avatar src={user.avatar} alt={user.name} />
-                        <span className="font-medium">{user.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge status={user.status}>{user.status}</Badge>
-                    </TableCell>
-                    <TableCell>{user.lastVisit || "-"}</TableCell>
-                    <TableCell>
-                      {user.dueDate
-                        ? new Date(user.dueDate).toLocaleDateString()
-                        : "-"}
-                    </TableCell>
+                {logsLoading && (
+                  <TableRow>
+                    <TableCell colSpan={4}>Cargando...</TableCell>
                   </TableRow>
-                ))}
+                )}
+                {logsError && (
+                  <TableRow>
+                    <TableCell colSpan={4}>Error al cargar accesos</TableCell>
+                  </TableRow>
+                )}
+                {accessLogs &&
+                  accessLogs.map(
+                    (log: {
+                      _id: string;
+                      name?: string;
+                      avatar?: string;
+                      status: string;
+                      timestamp: string;
+                    }) => (
+                      <TableRow key={log._id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar
+                              src={log.avatar}
+                              alt={log.name}
+                            />
+                            <span className="font-medium">
+                              {log.name || "-"}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge status={log.status}>{log.status}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {log.timestamp
+                            ? new Date(log.timestamp).toLocaleTimeString()
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          {log.timestamp
+                            ? new Date(log.timestamp).toLocaleDateString()
+                            : "-"}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  )}
               </TableBody>
             </Table>
           </div>
