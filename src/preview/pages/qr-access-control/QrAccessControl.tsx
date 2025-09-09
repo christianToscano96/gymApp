@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import QrScanner from "@/preview/components/QrScanner";
 import {
   Card,
   CardContent,
@@ -17,24 +18,42 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  QrCode,
-  CheckCircle,
-  XCircle,
-  Search,
-  Camera,
-  Clock,
-} from "lucide-react";
+import { QrCode, CheckCircle, XCircle, Search, Clock } from "lucide-react";
 import Avatar from "@/components/ui/avatar";
-import { accessLogs } from "@/fake/fake-data-gym";
+import { fetchUsers } from "@/api/userService";
+import { fetchUserByQrCode } from "@/api/userService";
+
+interface ScannedUser {
+  name: string;
+  membership: string;
+  status: string;
+  lastPayment: string;
+  photo: string;
+}
 
 const QrAccessControl = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [scannedUser, setScannedUser] = useState<any>(null);
+  const [scannedUser, setScannedUser] = useState<ScannedUser | null>(null);
+  const [qrResult, setQrResult] = useState("");
+  // Eliminado scannerRef, ahora se usa QrScanner
 
-  const filteredLogs = accessLogs.filter((log) =>
-    log.user.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [users, setUsers] = useState<any[]>([]);
+  const [filteredLogs, setFilteredLogs] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchUsers().then((data) => {
+      setUsers(data);
+      setFilteredLogs(data);
+    });
+  }, []);
+
+  useEffect(() => {
+    setFilteredLogs(
+      users.filter((user) =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [searchTerm, users]);
 
   const simulateQRScan = () => {
     // Simulate scanning a QR code
@@ -46,6 +65,25 @@ const QrAccessControl = () => {
       photo: "/portrait-thoughtful-woman.png",
     };
     setScannedUser(mockUser);
+  };
+
+  // handleQRScan ya no se usa, la lógica está en el scanner
+
+  // El escaneo ahora se maneja en QrScanner
+  const handleScan = async (decodedText: string) => {
+    setQrResult(decodedText);
+    try {
+      const user = await fetchUserByQrCode(decodedText);
+      setScannedUser({
+        name: user.name,
+        membership: user.membership,
+        status: user.status,
+        lastPayment: user.dueDate,
+        photo: user.avatar,
+      });
+    } catch {
+      setScannedUser(null);
+    }
   };
 
   const handleAccess = (allowed: boolean) => {
@@ -70,21 +108,22 @@ const QrAccessControl = () => {
             <CardDescription>Escanea el código QR del miembro</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-center h-48 bg-muted rounded-lg border-2 border-dashed">
-              <div className="text-center">
-                <Camera className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">
-                  Coloca el código QR frente a la cámara
-                </p>
-                <Button
-                  onClick={simulateQRScan}
-                  className="flex items-center justify-center gap-2"
-                  size="lg"
-                >
-                  <QrCode className="h-4 w-4" />
-                  Simular Escaneo
-                </Button>
-              </div>
+            <div className="flex flex-col items-center justify-center h-48 bg-muted rounded-lg border-2 border-dashed">
+              <QrScanner onScan={handleScan} />
+              <p className="text-muted-foreground mt-2">
+                Coloca el código QR frente a la cámara
+              </p>
+              <Button
+                onClick={simulateQRScan}
+                className="flex items-center justify-center gap-2 mt-2"
+                size="lg"
+              >
+                <QrCode className="h-4 w-4" />
+                Simular Escaneo
+              </Button>
+              {qrResult && (
+                <p className="mt-2 text-primary">QR leído: {qrResult}</p>
+              )}
             </div>
 
             {scannedUser && (
@@ -206,26 +245,25 @@ const QrAccessControl = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredLogs.map((log) => (
-                  <TableRow key={log.id}>
+                {filteredLogs.map((user) => (
+                  <TableRow key={user._id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
-                        <Avatar alt={log.user} />
-                        <span className="font-medium">{log.user}</span>
+                        <Avatar src={user.avatar} alt={user.name} />
+                        <span className="font-medium">{user.name}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge status={log.membership}>{log.membership}</Badge>
+                      <Badge status={user.membership}>{user.membership}</Badge>
                     </TableCell>
-                    <TableCell>{log.timestamp}</TableCell>
+                    <TableCell>{user.lastVisit || "-"}</TableCell>
                     <TableCell>
-                      {new Date(log.date).toLocaleDateString()}
+                      {user.dueDate
+                        ? new Date(user.dueDate).toLocaleDateString()
+                        : "-"}
                     </TableCell>
                     <TableCell>
-                      {" "}
-                      <Badge status={log.accessStatus}>
-                        {log.accessStatus}
-                      </Badge>
+                      <Badge status={user.status}>{user.status}</Badge>
                     </TableCell>
                   </TableRow>
                 ))}
