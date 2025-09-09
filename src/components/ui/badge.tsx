@@ -11,12 +11,12 @@ export interface BadgeProps {
     | "warning"
     | "info"
     | "light"
-    | "dark";
-  /**
-   * Si se provee status, se usará el hook useGetStatusColor para determinar la clase de color.
-   */
+    | "dark"
+    | "destructive";
+
   status?: string;
   className?: string;
+  size?: "sm" | "md" | "lg";
 }
 
 const colorClasses: Record<NonNullable<BadgeProps["color"]>, string> = {
@@ -28,6 +28,7 @@ const colorClasses: Record<NonNullable<BadgeProps["color"]>, string> = {
   info: "bg-cyan-500 text-white",
   light: "bg-gray-100 text-gray-800",
   dark: "bg-gray-900 text-white",
+  destructive: "bg-red-600 text-white",
 };
 
 export const Badge: React.FC<BadgeProps> = ({
@@ -35,13 +36,18 @@ export const Badge: React.FC<BadgeProps> = ({
   color = "primary",
   status,
   className = "",
+  size = "md",
 }) => {
-  // Siempre llamar el hook, pero solo usar el resultado si status está definido
   const statusColorClass = useGetStatusColor(status ?? "");
   const colorClass = status ? statusColorClass : colorClasses[color];
+  const sizeClasses = {
+    sm: "px-2 py-0.5 text-xs",
+    md: "px-3 py-1 text-sm",
+    lg: "px-4 py-2 text-base",
+  };
   return (
     <div
-      className={` p-2 w-20  mt-2 flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold shadow-sm ring-1 ring-black/5 ${colorClass} ${className}`}
+      className={`mt-2 flex items-center justify-center rounded-full font-semibold shadow-sm ring-1 ring-black/5 ${sizeClasses[size]} ${colorClass} ${className}`}
     >
       {children}
     </div>

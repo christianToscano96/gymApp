@@ -1,42 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { LogOut } from "lucide-react";
+import { CheckCircle, LogOut, UserRoundCog, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { User } from "../preview/interfaces/preview.interfaces";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  CalendarDays,
-  Mail,
-  Phone,
-  QrCode,
-  RefreshCw,
-  User,
-} from "lucide-react";
-// import { mockUserData } from "@/fake/fake-data-user-profile";
+import { CalendarDays, Mail, Phone, QrCode, RefreshCw } from "lucide-react";
 
 export default function UserPreviewPage() {
   const [isRenewing, setIsRenewing] = useState(false);
+  const [viewProfile, setViewProfile] = useState(false);
+
   const queryClient = useQueryClient();
-  type UserType = {
-    id?: string;
-    name?: string;
-    phone?: string;
-    email?: string;
-    status?: "Activo" | "Vencido";
-    membership?: "Básico" | "Premium";
-    lastVisit?: string;
-    avatar?: string;
-    joinDate?: string;
-    dueDate?: string;
-    qrCode?: string;
-    role?: "administrator" | "user";
-    password?: string;
-    token?: string;
-  };
-  const user = queryClient.getQueryData(["user"]) as UserType | undefined;
+  const user = queryClient.getQueryData(["user"]) as User | undefined;
   const logout = () => {
     queryClient.removeQueries({ queryKey: ["user"] });
     localStorage.clear();
@@ -80,86 +59,94 @@ export default function UserPreviewPage() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
-      <div className="mx-auto max-w-md space-y-6">
+      <div className="mx-auto max-w-md space-y-4">
         {/* Header with Avatar and Name */}
-        <Card className="text-center">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center space-y-4">
-              <Avatar src={user.avatar || "/placeholder.svg"} alt={user.name} />
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">
-                  {user.name}
-                </h1>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <Badge
-                    status={user.status === "Activo" ? "default" : "secondary"}
-                    className="bg-primary text-primary-foreground"
-                  >
-                    {user.membership || "Sin membresía"}
-                  </Badge>
-                  {isExpiringSoon() && (
-                    <Badge status="destructive" className="animate-pulse">
-                      Próximo a vencer
-                    </Badge>
-                  )}
+        <div className="flex items-center gap-4 p-6 bg-white rounded-3xl border border-gray-200  backdrop-blur-sm">
+          <Avatar
+            src={user.avatar || "/placeholder.svg"}
+            alt={user.name}
+            onClick={() => setViewProfile(!viewProfile)}
+          />
+
+          <div className="flex-1">
+            <h1 className="text-xl font-bold text-gray-900 mb-1">
+              {user.name}
+            </h1>
+            <div className="flex items-center gap-2">
+              {user.status === "activo" && (
+                <Badge
+                  size="lg"
+                  status="active"
+                  className="flex items-center gap-1"
+                >
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-xs font-medium text-green-600">
+                    Activo
+                  </span>
+                </Badge>
+              )}
+              {isExpiringSoon() && (
+                <Badge status="destructive">Próximo a vencer</Badge>
+              )}
+            </div>
+          </div>
+        </div>
+        {viewProfile && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <UserRoundCog className="h-5 w-5 text-primary" />
+                Información Personal
+                <div className="ml-auto cursor-pointer hover:text-red-500 justify-end">
+                  <X onClick={() => setViewProfile(false)} />
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-medium text-foreground">{user.email}</p>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Personal Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <User className="h-5 w-5 text-primary" />
-              Información Personal
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium text-foreground">{user.email}</p>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Teléfono</p>
+                  <p className="font-medium text-foreground">{user.phone}</p>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Teléfono</p>
-                <p className="font-medium text-foreground">{user.phone}</p>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Fecha de ingreso
+                  </p>
+                  <p className="font-medium text-foreground">
+                    {user.joinDate ? formatDate(user.joinDate) : "-"}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-              <CalendarDays className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Fecha de ingreso
-                </p>
-                <p className="font-medium text-foreground">
-                  {user.joinDate ? formatDate(user.joinDate) : "-"}
-                </p>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Vencimiento</p>
+                  <p
+                    className={`font-medium ${
+                      isExpiringSoon() ? "text-destructive" : "text-foreground"
+                    }`}
+                  >
+                    {user.dueDate ? formatDate(user.dueDate) : "-"}
+                  </p>
+                </div>
               </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-              <CalendarDays className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Vencimiento</p>
-                <p
-                  className={`font-medium ${
-                    isExpiringSoon() ? "text-destructive" : "text-foreground"
-                  }`}
-                >
-                  {user.dueDate ? formatDate(user.dueDate) : "-"}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* QR Code for Access */}
         <Card>
@@ -196,40 +183,52 @@ export default function UserPreviewPage() {
           </CardContent>
         </Card>
 
-        {/* Renewal Button */}
-        <Card className="border-primary/20">
-          <CardContent className="pt-6 space-y-4">
+        <Card className="border-4 border-black shadow-2xl bg-gradient-to-br from-black via-gray-900 to-black rounded-3xl overflow-hidden">
+          <CardContent className="pt-8 pb-8">
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-black text-white mb-3">
+                ¿Listo para continuar?
+              </h3>
+              <p className="text-gray-300 font-semibold text-lg">
+                Renueva tu membresía y mantén el acceso
+              </p>
+            </div>
+
             <Button
               onClick={handleRenewMembership}
               disabled={isRenewing}
-              className="w-full h-12 text-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="w-full h-16 text-sm font-black bg-gradient-to-r from-white to-gray-100 text-black hover:from-gray-100 hover:to-white shadow-2xl transform transition-all duration-300 hover:scale-[1.02] hover:shadow-3xl rounded-2xl border-2 border-white/20"
             >
               {isRenewing ? (
                 <>
-                  <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
-                  Procesando...
+                  <RefreshCw className="mr-3 h-6 w-6 animate-spin" />
+                  PROCESANDO RENOVACIÓN...
                 </>
               ) : (
                 <>
-                  <RefreshCw className="mr-2 h-5 w-5" />
-                  Renovar Membresía
+                  <RefreshCw className="mr-3 h-6 w-6" />
+                  🚀 RENOVAR MEMBRESÍA AHORA
                 </>
               )}
             </Button>
-            <Button
-              onClick={logout}
-              variant="destructive"
-              className="w-full h-12 text-lg font-semibold flex items-center justify-center gap-2"
-            >
-              <LogOut className="mr-2 h-5 w-5" />
-              Cerrar sesión
-            </Button>
-            <p className="text-xs text-muted-foreground text-center mt-3">
+            <p className="text-xs text-muted-foreground text-center mt-4">
               Renueva tu membresía para continuar disfrutando de todos los
               beneficios
             </p>
           </CardContent>
         </Card>
+
+        {/* Renewal Button */}
+        <div className="border-primary/20 mt-4 mb-6">
+          <Button
+            onClick={logout}
+            variant="destructive"
+            className="w-full h-12 text-lg font-semibold flex items-center justify-center gap-2"
+          >
+            <LogOut className="mr-2 h-5 w-5" />
+            Cerrar sesión
+          </Button>
+        </div>
       </div>
     </div>
   );
