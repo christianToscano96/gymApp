@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import QrScanner from "@/preview/components/QrScanner";
+import type { User } from "@/preview/interfaces/preview.interfaces";
 import {
   Card,
   CardContent,
@@ -17,35 +19,60 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  QrCode,
-  CheckCircle,
-  XCircle,
-  Search,
-  Camera,
-  Clock,
-} from "lucide-react";
+import { QrCode, CheckCircle, XCircle, Search, Clock } from "lucide-react";
 import Avatar from "@/components/ui/avatar";
-import { accessLogs } from "@/fake/fake-data-gym";
+import { fetchUsers } from "@/api/userService";
+import { fetchUserByQrCode } from "@/api/userService";
+import { toast } from "sonner";
+
+interface ScannedUser {
+  name: string;
+  membership: string;
+  status: string;
+  lastPayment: string;
+  photo: string;
+}
 
 const QrAccessControl = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [scannedUser, setScannedUser] = useState<any>(null);
+  const [scannedUser, setScannedUser] = useState<ScannedUser | null>(null);
 
-  const filteredLogs = accessLogs.filter((log) =>
-    log.user.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredLogs, setFilteredLogs] = useState<User[]>([]);
 
-  const simulateQRScan = () => {
-    // Simulate scanning a QR code
-    const mockUser = {
-      name: "María González",
-      membership: "Premium",
-      status: "Activo",
-      lastPayment: "2024-01-01",
-      photo: "/portrait-thoughtful-woman.png",
-    };
-    setScannedUser(mockUser);
+  useEffect(() => {
+    fetchUsers().then((data: User[]) => {
+      const onlyUsers = data.filter(
+        (user) => user.role !== "administrator" && user.role !== "staff"
+      );
+      setUsers(onlyUsers);
+      setFilteredLogs(onlyUsers);
+    });
+  }, []);
+
+  useEffect(() => {
+    setFilteredLogs(
+      users.filter((user) =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [searchTerm, users]);
+
+  // El escaneo ahora se maneja en QrScanner
+  const handleScan = async (decodedText: string) => {
+    try {
+      const user = await fetchUserByQrCode(decodedText);
+      setScannedUser({
+        name: user.name,
+        membership: user.membership,
+        status: user.status,
+        lastPayment: user.dueDate,
+        photo: user.avatar,
+      });
+      toast.success("Usuario encontrado");
+    } catch {
+      setScannedUser(null);
+    }
   };
 
   const handleAccess = (allowed: boolean) => {
@@ -70,22 +97,11 @@ const QrAccessControl = () => {
             <CardDescription>Escanea el código QR del miembro</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-center h-48 bg-muted rounded-lg border-2 border-dashed">
-              <div className="text-center">
-                <Camera className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">
-                  Coloca el código QR frente a la cámara
-                </p>
-                <Button
-                  onClick={simulateQRScan}
-                  className="flex items-center justify-center gap-2"
-                  size="lg"
-                >
-                  <QrCode className="h-4 w-4" />
-                  Simular Escaneo
-                </Button>
+            {!scannedUser && (
+              <div className="flex flex-col items-center justify-center h-44 bg-muted rounded-lg border-2 border-dashed">
+                <QrScanner onScan={handleScan} />
               </div>
-            </div>
+            )}
 
             {scannedUser && (
               <Card className="border-primary">
@@ -108,7 +124,11 @@ const QrAccessControl = () => {
 
                   <div className="flex space-x-2">
                     <Button
-                      onClick={() => handleAccess(true)}
+                      onClick={() => {
+                        handleAccess(true);
+                        setScannedUser(null);
+                        toast.success("Acceso permitido");
+                      }}
                       className="flex-1 bg-primary hover:bg-primary/90"
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
@@ -199,33 +219,28 @@ const QrAccessControl = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Usuario</TableHead>
-                  <TableHead>Membresía</TableHead>
+                  <TableHead>Estado</TableHead>
                   <TableHead>Hora</TableHead>
                   <TableHead>Fecha</TableHead>
-                  <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredLogs.map((log) => (
-                  <TableRow key={log.id}>
+                {filteredLogs.map((user) => (
+                  <TableRow key={user._id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
-                        <Avatar alt={log.user} />
-                        <span className="font-medium">{log.user}</span>
+                        <Avatar src={user.avatar} alt={user.name} />
+                        <span className="font-medium">{user.name}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge status={log.membership}>{log.membership}</Badge>
+                      <Badge status={user.status}>{user.status}</Badge>
                     </TableCell>
-                    <TableCell>{log.timestamp}</TableCell>
+                    <TableCell>{user.lastVisit || "-"}</TableCell>
                     <TableCell>
-                      {new Date(log.date).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      {" "}
-                      <Badge status={log.accessStatus}>
-                        {log.accessStatus}
-                      </Badge>
+                      {user.dueDate
+                        ? new Date(user.dueDate).toLocaleDateString()
+                        : "-"}
                     </TableCell>
                   </TableRow>
                 ))}

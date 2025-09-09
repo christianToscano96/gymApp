@@ -1,3 +1,4 @@
+// Buscar usuario por código QR
 import express from "express";
 import cors from "cors";
 import connectDB from "./models/connectDB.js";
@@ -12,6 +13,21 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Buscar usuario por código QR
+app.get("/api/users/qr/:qrCode", async (req, res) => {
+  try {
+    const { qrCode } = req.params;
+    // Asegurarse que la consulta sea por string
+    const user = await User.findOne({ qrCode: String(qrCode) });
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 connectDB();
 

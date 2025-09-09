@@ -1,3 +1,11 @@
+// Buscar usuario por _id
+// (dejar solo una declaración más abajo)
+// Buscar usuario por código QR
+export const fetchUserByQrCode = async (qrCode: string) => {
+  const res = await fetch(`/api/users/qr/${qrCode}`);
+  if (!res.ok) throw new Error("Usuario no encontrado");
+  return res.json();
+};
 
 import type { User } from "@/preview/interfaces/preview.interfaces";
 
