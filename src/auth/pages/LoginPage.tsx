@@ -45,15 +45,12 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
         role: data.user.role,
       });
       // Guardar usuario en React Query para UserPreviewPage
-      queryClient.setQueryData([
-        "user"
-      ], {
+      queryClient.setQueryData(["user"], {
         id: data.user.id,
         name: data.user.name,
         email: data.user.email,
         token: data.token,
         role: data.user.role,
-        // agrega otros campos si existen en data.user
         phone: data.user.phone,
         status: data.user.status,
         membership: data.user.membership,
@@ -62,7 +59,8 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
         joinDate: data.user.joinDate,
         dueDate: data.user.dueDate,
         qrCode: data.user.qrCode,
-        password: undefined
+        qrImage: data.user.qrImage || data.qrImage,
+        password: undefined,
       });
       // Guardar el id en localStorage para TanStack Query
       localStorage.setItem("userId", data.user.id);

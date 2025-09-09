@@ -57,6 +57,8 @@ export default function UserPreviewPage() {
     );
   }
 
+  console.log(user.qrImage);
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
       <div className="mx-auto max-w-md space-y-4">
@@ -159,13 +161,15 @@ export default function UserPreviewPage() {
           <CardContent>
             <div className="flex flex-col items-center space-y-4">
               <div className="p-4 bg-white rounded-xl border-2 border-border shadow-sm">
-                <img
-                  src={`/qr-code-for-gym-access-.png?height=200&width=200&query=QR code for gym access ${
-                    user.qrCode || ""
-                  }`}
-                  alt="QR Code de acceso al gimnasio"
-                  className="h-48 w-48"
-                />
+                {user.qrImage ? (
+                  <img
+                    src={user.qrImage}
+                    alt="QR Code de acceso al gimnasio"
+                    className="h-48 w-48"
+                  />
+                ) : (
+                  <span className="text-muted-foreground">No disponible</span>
+                )}
               </div>
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">

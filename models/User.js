@@ -33,5 +33,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  qrCode: {
+    type: String,
+    default: null,
+  },
+  qrImage: {
+    type: String,
+    default: null,
+  },
 });
 export default mongoose.model("User", userSchema);

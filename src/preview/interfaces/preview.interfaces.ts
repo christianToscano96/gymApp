@@ -10,6 +10,7 @@ export interface User {
   joinDate: string,
   dueDate: string,
   qrCode: string,
+  qrImage?: string,
   role: string,
   password: string,
   dni: string

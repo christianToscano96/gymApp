@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import dotenv from "dotenv";
+import { generateQr } from "../lib/qr.js";
 import Joi from "joi";
 dotenv.config();
 
@@ -45,6 +46,7 @@ function formatUser(user) {
     dueDate: user.dueDate || null,
     joinDate: user.joinDate,
     qrCode: user.qrCode || "",
+    qrImage: user.qrImage || "",
   };
 }
 
@@ -70,10 +72,17 @@ router.post("/register", async (req, res) => {
       dueDate: dueDate || null,
     });
     await user.save();
+    // Generar QR después de guardar el usuario
+    const { qrCode, qrImage } = await generateQr(user._id.toString());
+    user.qrCode = qrCode;
+    user.qrImage = qrImage;
+    await user.save();
     const token = generateToken(user._id);
     res.status(201).json({
       token,
       user: formatUser(user),
+      qrImage,
+      qrCode,
     });
   } catch (err) {
     res.status(500).json({ error: "Error interno del servidor" });
@@ -95,6 +104,8 @@ router.post("/login", async (req, res) => {
     res.json({
       token,
       user: formatUser(user),
+      qrImage: user.qrImage,
+      qrCode: user.qrCode,
     });
   } catch (err) {
     res.status(500).json({ error: "Error interno del servidor" });
