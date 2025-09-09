@@ -54,6 +54,11 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
     { label: "Pendiente", value: "Pendiente" },
     { label: "Vencido", value: "Vencido" },
   ];
+  const ROLE_OPTIONS = [
+    { label: "Administrador", value: "administrator" },
+    { label: "Usuario", value: "user" },
+    { label: "Staff", value: "staff" },
+  ];
   const EXPIRATION_OPTIONS = [
     { label: "1 día", value: "1" },
     { label: "15 días", value: "15" },
@@ -264,7 +269,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-md mx-auto bg-white p-6 space-y-4"
+      className="max-w-md mx-auto bg-white p-2 space-y-4"
     >
       <div className="flex flex-col items-center">
         <label htmlFor="avatar" className="cursor-pointer">
@@ -304,25 +309,50 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
       </div>
 
       {id === undefined || id === null ? (
-        <div className="mt-1">
-          <Label className="block text-sm font-medium text-gray-700">
-            Estado
-          </Label>
-          <Select
-            options={STATUS_OPTIONS}
-            value={form.status}
-            onChange={(value) =>
-              setForm((prev) => ({
-                ...prev,
-                status: value as "Activo" | "Pendiente" | "Vencido",
-              }))
-            }
-            placeholder="Selecciona estado"
-            className="w-full"
-          />
-        </div>
+        <>
+          <div className="mt-1">
+            <Label className="block text-sm font-medium text-gray-700">
+              Rol
+            </Label>
+            <Select
+              options={ROLE_OPTIONS}
+              value={form.role}
+              onChange={(value) =>
+                setForm((prev) => ({
+                  ...prev,
+                  role: value as "administrator" | "user" | "staff",
+                }))
+              }
+              placeholder="Selecciona rol"
+              className="w-full"
+            />
+          </div>
+          <div className="mt-1">
+            <Label className="block text-sm font-medium text-gray-700">
+              Estado
+            </Label>
+            <Select
+              options={STATUS_OPTIONS}
+              value={form.status}
+              onChange={(value) =>
+                setForm((prev) => ({
+                  ...prev,
+                  status: value as "Activo" | "Pendiente" | "Vencido",
+                }))
+              }
+              placeholder="Selecciona estado"
+              className="w-full"
+            />
+          </div>
+        </>
       ) : (
         <div className="flex items-center justify-start gap-5 mt-5">
+          <div>
+            <Label className="block text-sm font-medium text-gray-700">
+              Rol
+            </Label>
+            <Badge status={form.role}>{form.role}</Badge>
+          </div>
           <div>
             <Label className="block text-sm font-medium text-gray-700">
               Estado
@@ -360,21 +390,19 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           />
         </div>
       </div>
-      {form.role !== "administrator" && (
+      <div>
+        <Label className="block text-sm font-medium text-gray-700">DNI</Label>
+        <Input
+          type="text"
+          name="dni"
+          value={form.dni}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          required
+        />
+      </div>
+      {!["administrator", "staff"].includes(form.role) && (
         <>
-          <div>
-            <Label className="block text-sm font-medium text-gray-700">
-              DNI
-            </Label>
-            <Input
-              type="text"
-              name="dni"
-              value={form.dni}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              required
-            />
-          </div>
           <div>
             <Label className="block text-sm font-medium text-gray-700">
               Fecha de Ingreso

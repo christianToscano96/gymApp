@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import Badge from "@/components/ui/badge";
 import AlertDialog from "@/components/ui/alert-dialog";
 import Modal from "@/components/ui/modal";
 import { useQuery } from "@tanstack/react-query";
+import { useCurrentUser } from "@/hook/useCurrentUser";
 
 import { fetchUsers } from "@/api/userService";
 import { AddUserForm } from "./AddUserForm";
@@ -40,6 +41,7 @@ const UsersPage = () => {
     selectedUserId: "",
   });
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const { data: currentUser } = useCurrentUser();
   const roleTabs = [
     { label: "Todos", value: "all" },
     { label: "Usuarios", value: "user" },
@@ -99,12 +101,15 @@ const UsersPage = () => {
         </Button>
       </div>
       {/* Tabs para filtrar por rol usando shadcn/ui */}
-      <Tabs
-        tabs={roleTabs}
-        value={roleFilter}
-        onChange={setRoleFilter}
-        className="mt-6 mb-2"
-      />
+      {currentUser.role === "administrator" && (
+        <Tabs
+          tabs={roleTabs}
+          value={roleFilter}
+          onChange={setRoleFilter}
+          className="mt-6 mb-2"
+        />
+      )}
+
       {isLoading && <div>Loading...</div>}
       <ScrollArea className="h-[calc(80vh-0px)] mt-10">
         <Table>
@@ -123,9 +128,14 @@ const UsersPage = () => {
           </TableHeader>
           <TableBody>
             {users
-              ?.filter((user: User) =>
-                roleFilter === "all" ? true : user.role === roleFilter
-              )
+              ?.filter((user: User) => {
+                // Si el usuario logeado es staff, solo mostrar usuarios con rol 'user'
+                if (currentUser && currentUser.role === "staff") {
+                  return user.role === "user";
+                }
+                // Filtro normal por tabs
+                return roleFilter === "all" ? true : user.role === roleFilter;
+              })
               .map((user: User) => (
                 <UserTableRow
                   key={user._id}

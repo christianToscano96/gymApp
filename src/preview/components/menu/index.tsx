@@ -53,16 +53,6 @@ const Menu = () => {
         <CreditCard className="mr-1" />
         Pagos
       </Button>
-      <Button
-        variant={
-          location.pathname.includes("/preview/staff") ? "default" : "secondary"
-        }
-        className="cursor-pointer flex items-center justify-start min-w-max"
-        onClick={() => navigate("/preview/staff")}
-      >
-        <UserCheck className="mr-1" />
-        Instructores
-      </Button>
     </div>
   );
 };

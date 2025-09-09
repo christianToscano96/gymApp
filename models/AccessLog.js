@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 const accessLogSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  accessType: { type: String, enum: ['entry', 'exit'] },
-  timestamp: { type: Date, default: Date.now }
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  entryDate: { type: Date },
+  exitDate: { type: Date },
 });
 export default mongoose.model('AccessLog', accessLogSchema);

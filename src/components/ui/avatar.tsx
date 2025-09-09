@@ -6,6 +6,7 @@ export interface AvatarProps {
   size?: "sm" | "md" | "lg";
   className?: string;
   fallback?: React.ReactNode;
+  onClick?: () => void;
 }
 
 const sizeMap = {
@@ -20,6 +21,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   size = "md",
   className = "",
   fallback,
+  onClick,
 }) => {
   const [imgError, setImgError] = React.useState(false);
   const getInitials = (name: string) => {
@@ -36,6 +38,7 @@ export const Avatar: React.FC<AvatarProps> = ({
     <span
       className={`inline-flex items-center justify-center rounded-full bg-gray-200 overflow-hidden ${sizeMap[size]} ${className}`}
       data-testid="avatar"
+      onClick={onClick}
     >
       {src && !imgError ? (
         <img

@@ -1,20 +1,21 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { Link, useNavigate, Outlet } from "react-router";
-
 import { useQueryClient } from "@tanstack/react-query";
 import Menu from "../components/menu";
 import Avatar from "@/components/ui/avatar";
+import { useCurrentUser } from "@/hook/useCurrentUser";
+import Profile from "@/components/ui/Profile";
 
 import { Bell, Settings } from "lucide-react";
 import { Toaster } from "sonner";
 
-interface RentalLayoutProps {
-  user?: { name?: string };
-}
-export default function RentalLayout({ user }: RentalLayoutProps) {
+export default function GymLayout() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { data: currentUser, isLoading } = useCurrentUser();
+  const [profileOpen, setProfileOpen] = React.useState(false);
   const onLogout = () => {
     localStorage.clear();
     queryClient.removeQueries({ queryKey: ["user"] });
@@ -37,7 +38,18 @@ export default function RentalLayout({ user }: RentalLayoutProps) {
         <div className="text-lg flex items-center gap-4">
           <Bell />
           <Settings />
-          <Avatar alt={user?.name} />
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => setProfileOpen(true)}
+          >
+            {isLoading ? (
+              <Avatar alt="Cargando..." />
+            ) : (
+              <Avatar src={currentUser?.avatar} alt={currentUser?.name} />
+            )}
+          </div>
+          {/* Modal Profile */}
+          <Profile isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
           <div className="">
             <Button
               variant="ghost"

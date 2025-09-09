@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/hook/useUserStore";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
   // Elimina queryClient, usa Zustand
   const setUser = useUserStore((state) => state.setUser);
+  const queryClient = useQueryClient();
   // Eliminado setUser de UserContext
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -42,10 +44,30 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
         token: data.token,
         role: data.user.role,
       });
+      // Guardar usuario en React Query para UserPreviewPage
+      queryClient.setQueryData(["user"], {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        token: data.token,
+        role: data.user.role,
+        phone: data.user.phone,
+        status: data.user.status,
+        membership: data.user.membership,
+        lastVisit: data.user.lastVisit,
+        avatar: data.user.avatar,
+        joinDate: data.user.joinDate,
+        dueDate: data.user.dueDate,
+        qrCode: data.user.qrCode,
+        qrImage: data.user.qrImage || data.qrImage,
+        password: undefined,
+      });
+      // Guardar el id en localStorage para TanStack Query
+      localStorage.setItem("userId", data.user.id);
       setSuccessMsg("Inicio de sesión exitoso");
       setShowSuccess(true);
       // Redirigir según el rol
-      if (data.user.role === "administrator") {
+      if (data.user.role === "administrator" || data.user.role === "staff") {
         navigate("/preview", { replace: true });
       } else if (data.user.role === "user") {
         navigate("/user-preview", { replace: true });
@@ -58,6 +80,7 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
           ? err.message
           : "Credenciales incorrectas. Intenta de nuevo."
       );
+      console.log(err);
       setSuccessMsg("");
       setShowSuccess(false);
     } finally {
