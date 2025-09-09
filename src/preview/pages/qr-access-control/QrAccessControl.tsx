@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import QrScanner from "@/preview/components/QrScanner";
+import type { User } from "@/preview/interfaces/preview.interfaces";
 import {
   Card,
   CardContent,
@@ -22,6 +23,7 @@ import { QrCode, CheckCircle, XCircle, Search, Clock } from "lucide-react";
 import Avatar from "@/components/ui/avatar";
 import { fetchUsers } from "@/api/userService";
 import { fetchUserByQrCode } from "@/api/userService";
+import { toast } from "sonner";
 
 interface ScannedUser {
   name: string;
@@ -34,16 +36,17 @@ interface ScannedUser {
 const QrAccessControl = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [scannedUser, setScannedUser] = useState<ScannedUser | null>(null);
-  const [qrResult, setQrResult] = useState("");
-  // Eliminado scannerRef, ahora se usa QrScanner
 
-  const [users, setUsers] = useState<any[]>([]);
-  const [filteredLogs, setFilteredLogs] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredLogs, setFilteredLogs] = useState<User[]>([]);
 
   useEffect(() => {
-    fetchUsers().then((data) => {
-      setUsers(data);
-      setFilteredLogs(data);
+    fetchUsers().then((data: User[]) => {
+      const onlyUsers = data.filter(
+        (user) => user.role !== "administrator" && user.role !== "staff"
+      );
+      setUsers(onlyUsers);
+      setFilteredLogs(onlyUsers);
     });
   }, []);
 
@@ -55,23 +58,8 @@ const QrAccessControl = () => {
     );
   }, [searchTerm, users]);
 
-  const simulateQRScan = () => {
-    // Simulate scanning a QR code
-    const mockUser = {
-      name: "María González",
-      membership: "Premium",
-      status: "Activo",
-      lastPayment: "2024-01-01",
-      photo: "/portrait-thoughtful-woman.png",
-    };
-    setScannedUser(mockUser);
-  };
-
-  // handleQRScan ya no se usa, la lógica está en el scanner
-
   // El escaneo ahora se maneja en QrScanner
   const handleScan = async (decodedText: string) => {
-    setQrResult(decodedText);
     try {
       const user = await fetchUserByQrCode(decodedText);
       setScannedUser({
@@ -81,6 +69,7 @@ const QrAccessControl = () => {
         lastPayment: user.dueDate,
         photo: user.avatar,
       });
+      toast.success("Usuario encontrado");
     } catch {
       setScannedUser(null);
     }
@@ -108,23 +97,11 @@ const QrAccessControl = () => {
             <CardDescription>Escanea el código QR del miembro</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex flex-col items-center justify-center h-48 bg-muted rounded-lg border-2 border-dashed">
-              <QrScanner onScan={handleScan} />
-              <p className="text-muted-foreground mt-2">
-                Coloca el código QR frente a la cámara
-              </p>
-              <Button
-                onClick={simulateQRScan}
-                className="flex items-center justify-center gap-2 mt-2"
-                size="lg"
-              >
-                <QrCode className="h-4 w-4" />
-                Simular Escaneo
-              </Button>
-              {qrResult && (
-                <p className="mt-2 text-primary">QR leído: {qrResult}</p>
-              )}
-            </div>
+            {!scannedUser && (
+              <div className="flex flex-col items-center justify-center h-44 bg-muted rounded-lg border-2 border-dashed">
+                <QrScanner onScan={handleScan} />
+              </div>
+            )}
 
             {scannedUser && (
               <Card className="border-primary">
@@ -147,7 +124,11 @@ const QrAccessControl = () => {
 
                   <div className="flex space-x-2">
                     <Button
-                      onClick={() => handleAccess(true)}
+                      onClick={() => {
+                        handleAccess(true);
+                        setScannedUser(null);
+                        toast.success("Acceso permitido");
+                      }}
                       className="flex-1 bg-primary hover:bg-primary/90"
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
@@ -238,10 +219,9 @@ const QrAccessControl = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Usuario</TableHead>
-                  <TableHead>Membresía</TableHead>
+                  <TableHead>Estado</TableHead>
                   <TableHead>Hora</TableHead>
                   <TableHead>Fecha</TableHead>
-                  <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -254,16 +234,13 @@ const QrAccessControl = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge status={user.membership}>{user.membership}</Badge>
+                      <Badge status={user.status}>{user.status}</Badge>
                     </TableCell>
                     <TableCell>{user.lastVisit || "-"}</TableCell>
                     <TableCell>
                       {user.dueDate
                         ? new Date(user.dueDate).toLocaleDateString()
                         : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge status={user.status}>{user.status}</Badge>
                     </TableCell>
                   </TableRow>
                 ))}
