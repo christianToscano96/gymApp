@@ -35,6 +35,8 @@ interface ScannedUser {
 }
 
 const QrAccessControl = () => {
+  // Estado para controlar el render del QrScanner
+  const [showScanner, setShowScanner] = useState(true);
   const {
     data: accessLogs,
     isLoading: logsLoading,
@@ -71,9 +73,11 @@ const QrAccessControl = () => {
         lastPayment: user.dueDate,
         photo: user.avatar,
       });
+      setShowScanner(false); // Oculta el scanner tras escanear
       toast.success("Usuario encontrado");
     } catch {
       setScannedUser(null);
+      setShowScanner(true); // Si falla, vuelve a mostrar el scanner
     }
   };
 
@@ -95,14 +99,29 @@ const QrAccessControl = () => {
                 `Acceso ${allowed ? "permitido" : "denegado"} guardado`
               );
               refetchAccessLogs(); // Actualiza la tabla de accesos
+              // Espera 1 segundo antes de volver a mostrar el scanner
+              setTimeout(() => {
+                setScannedUser(null);
+                setShowScanner(true);
+              }, 1000);
             },
             onError: () => {
               toast.error("Error al guardar el acceso");
+              // Si hay error, vuelve a mostrar el scanner después de un pequeño delay
+              setTimeout(() => {
+                setScannedUser(null);
+                setShowScanner(true);
+              }, 1000);
             },
           }
         );
+      } else {
+        // Si no se encuentra el usuario, vuelve a mostrar el scanner después de un pequeño delay
+        setTimeout(() => {
+          setScannedUser(null);
+          setShowScanner(true);
+        }, 1000);
       }
-      setScannedUser(null);
     }
   };
   return (
@@ -118,9 +137,9 @@ const QrAccessControl = () => {
             <CardDescription>Escanea el código QR del miembro</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!scannedUser && (
+            {showScanner && !scannedUser && (
               <div className="flex flex-col items-center justify-center h-44 bg-muted rounded-lg border-2 border-dashed">
-                <QrScanner onScan={handleScan} />
+                <QrScanner onScan={handleScan} stopScanning={!showScanner} />
               </div>
             )}
 
@@ -133,9 +152,6 @@ const QrAccessControl = () => {
                       <h3 className="font-semibold text-lg">
                         {scannedUser.name}
                       </h3>
-                      <p className="text-muted-foreground">
-                        Membresía: {scannedUser.membership}
-                      </p>
                       <p className="text-sm text-muted-foreground">
                         Último pago:{" "}
                         {new Date(scannedUser.lastPayment).toLocaleDateString()}
@@ -147,7 +163,6 @@ const QrAccessControl = () => {
                     <Button
                       onClick={() => {
                         handleAccess(true);
-                        setScannedUser(null);
                         toast.success("Acceso permitido");
                       }}
                       className="flex-1 bg-primary hover:bg-primary/90"
@@ -268,10 +283,7 @@ const QrAccessControl = () => {
                       <TableRow key={log._id}>
                         <TableCell>
                           <div className="flex items-center space-x-3">
-                            <Avatar
-                              src={log.avatar}
-                              alt={log.name}
-                            />
+                            <Avatar src={log.avatar} alt={log.name} />
                             <span className="font-medium">
                               {log.name || "-"}
                             </span>

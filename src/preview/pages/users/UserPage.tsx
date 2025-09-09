@@ -101,7 +101,7 @@ const UsersPage = () => {
         </Button>
       </div>
       {/* Tabs para filtrar por rol usando shadcn/ui */}
-      {currentUser.role === "administrator" && (
+      {currentUser?.role === "administrator" && (
         <Tabs
           tabs={roleTabs}
           value={roleFilter}
