@@ -48,6 +48,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   const [form, setForm] = useState<Omit<User, "_id">>(initialState);
   const { avatar, setAvatar, handleAvatarChange } = useAvatarResize();
   const [expirationType, setExpirationType] = useState("");
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   // Opciones constantes
   const STATUS_OPTIONS = [
     { label: "Activo", value: "Activo" },
@@ -169,12 +170,28 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validación de campos requeridos
+    const newErrors: { [key: string]: string } = {};
+    if (!form.name) newErrors.name = "El nombre es requerido.";
+    if (!form.phone) newErrors.phone = "El teléfono es requerido.";
+    if (!form.email) newErrors.email = "El email es requerido.";
+    if (!form.dni) newErrors.dni = "El DNI es requerido.";
+    if (!form.role) newErrors.role = "El rol es requerido.";
+    if (!form.status) newErrors.status = "El estado es requerido.";
+    if (!form.joinDate && !["administrator", "staff"].includes(form.role))
+      newErrors.joinDate = "La fecha de ingreso es requerida.";
+    if (!expirationType && !["administrator", "staff"].includes(form.role))
+      newErrors.expirationType = "El tipo de vencimiento es requerido.";
     // Validación: no permitir fechas de inicio pasadas
     if (
       form.joinDate &&
       new Date(form.joinDate) < new Date(new Date().toISOString().slice(0, 10))
     ) {
-      toast.error("La fecha de inicio no puede ser anterior a hoy.");
+      newErrors.joinDate = "La fecha de inicio no puede ser anterior a hoy.";
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Por favor completa todos los campos requeridos.");
       return;
     }
     // Normaliza joinDate y dueDate antes de guardar
@@ -242,6 +259,12 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
         if (error instanceof Error) {
           errorMsg = error.message;
         }
+        if (errorMsg.toLowerCase().includes("email ya registrado")) {
+          setErrors((prev) => ({
+            ...prev,
+            email: "El email ya está registrado.",
+          }));
+        }
         console.log(errorMsg);
         console.error("Error al crear usuario:", errorMsg);
       }
@@ -306,6 +329,9 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           required
         />
+        {errors.name && (
+          <div className="text-red-500 text-xs mt-1">{errors.name}</div>
+        )}
       </div>
 
       {id === undefined || id === null ? (
@@ -326,6 +352,9 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
               placeholder="Selecciona rol"
               className="w-full"
             />
+            {errors.role && (
+              <div className="text-red-500 text-xs mt-1">{errors.role}</div>
+            )}
           </div>
           <div className="mt-1">
             <Label className="block text-sm font-medium text-gray-700">
@@ -343,6 +372,9 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
               placeholder="Selecciona estado"
               className="w-full"
             />
+            {errors.status && (
+              <div className="text-red-500 text-xs mt-1">{errors.status}</div>
+            )}
           </div>
         </>
       ) : (
@@ -375,6 +407,9 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             required
           />
+          {errors.phone && (
+            <div className="text-red-500 text-xs mt-1">{errors.phone}</div>
+          )}
         </div>
         <div className="flex-1">
           <Label className="block text-sm font-medium text-gray-700">
@@ -388,6 +423,9 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             required
           />
+          {errors.email && (
+            <div className="text-red-500 text-xs mt-1">{errors.email}</div>
+          )}
         </div>
       </div>
       <div>
@@ -400,6 +438,9 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           required
         />
+        {errors.dni && (
+          <div className="text-red-500 text-xs mt-1">{errors.dni}</div>
+        )}
       </div>
       {!["administrator", "staff"].includes(form.role) && (
         <>
@@ -419,6 +460,9 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
                 });
               }}
             />
+            {errors.joinDate && (
+              <div className="text-red-500 text-xs mt-1">{errors.joinDate}</div>
+            )}
           </div>
           {form.joinDate && (
             <div>
@@ -440,6 +484,11 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
                 placeholder="Selecciona una opción"
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               />
+              {errors.expirationType && (
+                <div className="text-red-500 text-xs mt-1">
+                  {errors.expirationType}
+                </div>
+              )}
             </div>
           )}
 

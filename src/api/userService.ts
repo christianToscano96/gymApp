@@ -48,6 +48,7 @@ export const createUser = async (userData: {
     phone: userData.phone || "",
     dni: userData.dni || "",
     dueDate: userData.dueDate || null,
+    avatar: userData.avatar || null,
   };
   const res = await fetch("http://localhost:5050/api/auth/register", {
     method: "POST",

@@ -18,6 +18,7 @@ const registerSchema = Joi.object({
   phone: Joi.string().allow(null, ""),
   dni: Joi.string().allow(null, ""),
   dueDate: Joi.date().iso().allow(null, ""),
+  avatar: Joi.string().allow(null, ""),
 });
 
 const loginSchema = Joi.object({
@@ -55,7 +56,7 @@ router.post("/register", async (req, res) => {
   try {
     const { error } = registerSchema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
-    const { name, email, password, role, phone, dni, dueDate } = req.body;
+  const { name, email, password, role, phone, dni, dueDate, avatar } = req.body;
     const userExists = await User.findOne({ email });
     if (userExists)
       return res.status(400).json({ error: "Email ya registrado" });
@@ -70,6 +71,7 @@ router.post("/register", async (req, res) => {
       dni,
       joinDate: new Date(),
       dueDate: dueDate || null,
+      avatar: avatar || null,
     });
     await user.save();
     // Generar QR después de guardar el usuario
