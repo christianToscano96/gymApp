@@ -109,9 +109,12 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: "Credenciales inválidas" });
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
+    // Validar que la contraseña sean los últimos 4 dígitos del DNI
+    const dni = user.dni || "";
+    const last4Dni = dni.slice(-4);
+    if (password !== last4Dni) {
       return res.status(400).json({ error: "Credenciales inválidas" });
+    }
     const token = generateToken(user._id);
     res.json({
       token,
