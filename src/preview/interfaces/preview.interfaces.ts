@@ -20,7 +20,7 @@ export interface AccessLogs  {
   id: string,
   user: string,
   timestamp: string,
-  accessStatus: "Permitido" | "Denegado",
+  status: "permitido" | "denegado",
   date: string,
   membership: "Básico" | "Premium"
 }

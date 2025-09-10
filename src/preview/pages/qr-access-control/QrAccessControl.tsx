@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { AccessLogs } from "@/preview/interfaces/preview.interfaces";
 import ZxingQrScanner from "@/preview/components/ZxingQrScanner";
 import type { User } from "@/preview/interfaces/preview.interfaces";
 import {
@@ -124,6 +125,47 @@ const QrAccessControl = () => {
       }
     }
   };
+  // --- Estadísticas dinámicas ---
+  // Filtrar accesos de hoy
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = today.getMonth() + 1;
+  const dd = today.getDate();
+  const logsToday = Array.isArray(accessLogs)
+    ? (accessLogs as AccessLogs[]).filter((log) => {
+        const logDate = new Date(log.timestamp || log.date);
+        return (
+          logDate.getFullYear() === yyyy &&
+          logDate.getMonth() + 1 === mm &&
+          logDate.getDate() === dd
+        );
+      })
+    : [];
+
+  const totalAccess = logsToday.filter(
+    (log) => log.status?.toLowerCase() === "permitido"
+  ).length;
+  const deniedAccess = logsToday.filter(
+    (log) => log.status?.toLowerCase() === "denegado"
+  ).length;
+
+  // Hora pico: franja de 1h con más accesos
+  const hourCounts: Record<string, number> = {};
+  logsToday.forEach((log) => {
+    const hour = new Date(log.timestamp || log.date).getHours();
+    hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+  });
+  const peakHour = Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0];
+  const peakHourStr = peakHour
+    ? `${String(peakHour[0]).padStart(2, "0")}:00 - ${String(
+        Number(peakHour[0]) + 1
+      ).padStart(2, "0")}:00`
+    : "--";
+
+  // Promedio por hora
+  const hoursWithAccess = Object.keys(hourCounts).length || 1;
+  const avgPerHour = logsToday.length / hoursWithAccess;
+
   return (
     <main className="w-full min-h-screen flex-1 bg-white sm:rounded-[20px] sm:shadow-[0_4px_16px_rgba(17,17,26,0.05),0_8px_32px_rgba(17,17,26,0.05)] pb-20">
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 px-2 sm:px-0 pt-4">
@@ -139,7 +181,15 @@ const QrAccessControl = () => {
           <CardContent className="space-y-4">
             {showScanner && !scannedUser && (
               <div className="flex flex-col items-center justify-center min-h-44 bg-muted rounded-lg border-2 border-dashed p-4">
-                <ZxingQrScanner onScan={handleScan} stopScanning={!showScanner} videoStyle={{ width: "100%", borderRadius: 8, maxHeight: 220 }} />
+                <ZxingQrScanner
+                  onScan={handleScan}
+                  stopScanning={!showScanner}
+                  videoStyle={{
+                    width: "100%",
+                    borderRadius: 8,
+                    maxHeight: 220,
+                  }}
+                />
               </div>
             )}
 
@@ -201,29 +251,35 @@ const QrAccessControl = () => {
                   <p className="text-sm text-muted-foreground">
                     Total de Accesos
                   </p>
-                  <p className="text-2xl font-bold text-primary">89</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {logsLoading ? "..." : totalAccess}
+                  </p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-primary" />
               </div>
-
               <div className="flex items-center justify-between p-4 bg-destructive/5 rounded-lg">
                 <div>
                   <p className="text-sm text-muted-foreground">
                     Accesos Denegados
                   </p>
-                  <p className="text-2xl font-bold text-destructive">3</p>
+                  <p className="text-2xl font-bold text-destructive">
+                    {logsLoading ? "..." : deniedAccess}
+                  </p>
                 </div>
                 <XCircle className="h-8 w-8 text-destructive" />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-3 bg-muted rounded-lg">
                   <p className="text-sm text-muted-foreground">Hora Pico</p>
-                  <p className="font-semibold">18:00 - 20:00</p>
+                  <p className="font-semibold">
+                    {logsLoading ? "..." : peakHourStr}
+                  </p>
                 </div>
                 <div className="text-center p-3 bg-muted rounded-lg">
                   <p className="text-sm text-muted-foreground">Promedio/Hora</p>
-                  <p className="font-semibold">7.4</p>
+                  <p className="font-semibold">
+                    {logsLoading ? "..." : avgPerHour.toFixed(1)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -281,7 +337,7 @@ const QrAccessControl = () => {
                       timestamp: string;
                     }) => (
                       <TableRow key={log._id}>
-                        <TableCell>
+                        <TableCell className="pl-4">
                           <div className="flex items-center space-x-3">
                             <Avatar src={log.avatar} alt={log.name} />
                             <span className="font-medium">
@@ -289,7 +345,7 @@ const QrAccessControl = () => {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="flex">
                           <Badge status={log.status}>{log.status}</Badge>
                         </TableCell>
                         <TableCell>
