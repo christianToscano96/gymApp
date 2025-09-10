@@ -52,6 +52,8 @@ function formatUser(user) {
 }
 
 // Registro
+import { sendUserCreatedEmail } from "../lib/email.js";
+
 router.post("/register", async (req, res) => {
   try {
     const { error } = registerSchema.validate(req.body);
@@ -79,6 +81,14 @@ router.post("/register", async (req, res) => {
     user.qrCode = qrCode;
     user.qrImage = qrImage;
     await user.save();
+
+    // Enviar email de notificación al usuario
+    try {
+      await sendUserCreatedEmail(user.email, user.name, user.dni);
+    } catch (emailError) {
+      console.error("Error enviando email de alta de usuario:", emailError);
+    }
+
     const token = generateToken(user._id);
     res.status(201).json({
       token,
