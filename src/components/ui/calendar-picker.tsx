@@ -1,9 +1,14 @@
 import * as React from "react";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface CalendarPickerProps {
   value?: string;
@@ -11,15 +16,27 @@ interface CalendarPickerProps {
   disabled?: boolean;
 }
 
-export const CalendarPicker: React.FC<CalendarPickerProps> = ({ value, onChange, disabled }) => {
+export const CalendarPicker: React.FC<CalendarPickerProps> = ({
+  value,
+  onChange,
+  disabled,
+}) => {
   const [open, setOpen] = React.useState(false);
-  // Sincroniza el valor externo con el estado interno
-  const date = value ? new Date(value) : undefined;
+  const date = value
+    ? (() => {
+        const [year, month, day] = value.split("-").map(Number);
+        return new Date(year, month - 1, day, 0, 0, 0, 0);
+      })()
+    : undefined;
 
   const handleSelect = (selectedDate?: Date) => {
     if (selectedDate && onChange) {
-      onChange(selectedDate.toISOString().slice(0, 10));
-      setOpen(false); // Cierra el calendario al seleccionar
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+      const day = String(selectedDate.getDate()).padStart(2, "0");
+      const formatted = `${year}-${month}-${day}`;
+      onChange(formatted);
+      setOpen(false);
     }
   };
 
@@ -33,7 +50,11 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({ value, onChange,
           disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : <span>Selecciona una fecha</span>}
+          {date ? (
+            format(date, "PPP", { locale: es })
+          ) : (
+            <span>Selecciona una fecha</span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
@@ -42,6 +63,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({ value, onChange,
           selected={date}
           onSelect={handleSelect}
           initialFocus
+          locale={es}
         />
       </PopoverContent>
     </Popover>

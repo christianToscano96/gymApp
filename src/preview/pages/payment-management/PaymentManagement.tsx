@@ -60,7 +60,7 @@ const PaymentManagement = () => {
     .reduce((sum, p) => sum + p.amount, 0);
 
   return (
-    <main className=" pb-20 w-full min-h-screen flex-1 bg-white sm:rounded-[20px] sm:shadow-[0_4px_16px_rgba(17,17,26,0.05),0_8px_32px_rgba(17,17,26,0.05)]">
+    <main className=" pb-20 w-full min-h-screen flex-1,0_8px_32px_rgba(17,17,26,0.05)]">
       {/* Payment Stats */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-3 px-2 sm:px-0 pt-4">
         <Card>

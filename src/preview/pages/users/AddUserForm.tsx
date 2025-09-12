@@ -49,7 +49,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   const { avatar, setAvatar, handleAvatarChange } = useAvatarResize();
   const [expirationType, setExpirationType] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  // Opciones constantes
+
   const STATUS_OPTIONS = [
     { label: "Activo", value: "Activo" },
     { label: "Pendiente", value: "Pendiente" },
@@ -70,7 +70,6 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
     if (id && user) {
       setForm({
         ...user,
-        // Normaliza las fechas para los inputs
         joinDate: user.joinDate
           ? new Date(user.joinDate).toISOString().slice(0, 10)
           : "",
@@ -79,7 +78,6 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           : "",
       });
       setAvatar(user.avatar || "");
-      // Detecta el tipo de vencimiento solo al cargar el usuario
       if (user.joinDate && user.dueDate) {
         const join = new Date(user.joinDate);
         const due = new Date(user.dueDate);
@@ -147,7 +145,6 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   const saveUser = async () => {
     if (!id) return;
     try {
-      // Normaliza las fechas antes de guardar
       const normalizedJoinDate = form.joinDate
         ? new Date(form.joinDate).toISOString().slice(0, 10)
         : "";
@@ -170,7 +167,6 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validación de campos requeridos
     const newErrors: { [key: string]: string } = {};
     if (!form.name) newErrors.name = "El nombre es requerido.";
     if (!form.phone) newErrors.phone = "El teléfono es requerido.";
@@ -182,7 +178,6 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
       newErrors.joinDate = "La fecha de ingreso es requerida.";
     if (!expirationType && !["administrator", "staff"].includes(form.role))
       newErrors.expirationType = "El tipo de vencimiento es requerido.";
-    // Validación: no permitir fechas de inicio pasadas
     if (
       form.joinDate &&
       new Date(form.joinDate) < new Date(new Date().toISOString().slice(0, 10))
@@ -194,7 +189,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
       toast.error("Por favor completa todos los campos requeridos.");
       return;
     }
-    // Normaliza joinDate y dueDate antes de guardar
+
     const normalizedJoinDate = form.joinDate
       ? new Date(form.joinDate).toISOString().slice(0, 10)
       : "";
@@ -230,12 +225,10 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           !["Básico", "Premium"].includes(form.membership)
             ? form.membership
             : "";
-        // Genera password seguro: si DNI tiene al menos 6 caracteres, usa los últimos 6; si no, usa un valor por defecto
         let safePassword = "gymapp123";
         if (form.dni && form.dni.length >= 6) {
           safePassword = form.dni.slice(-6);
         } else if (form.dni && form.dni.length > 0) {
-          // Si el DNI tiene menos de 6 caracteres, repite hasta llegar a 6
           safePassword = form.dni
             .repeat(Math.ceil(6 / form.dni.length))
             .slice(0, 6);
