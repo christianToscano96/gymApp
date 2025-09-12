@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -46,7 +46,7 @@ const UsersPage = () => {
     { label: "Todos", value: "all" },
     { label: "Usuarios", value: "user" },
     { label: "Administradores", value: "administrator" },
-    { label: "Staff", value: "staff" },
+    { label: "Personal", value: "staff" },
   ];
 
   const {
@@ -57,7 +57,7 @@ const UsersPage = () => {
     queryKey: ["users"],
     queryFn: fetchUsers,
     staleTime: 1000 * 60 * 5,
-    refetchInterval: 5000, // Actualiza cada 5 segundos
+    refetchInterval: 5000,
   });
 
   const deleteUser = useCallback(
@@ -129,11 +129,9 @@ const UsersPage = () => {
           <TableBody>
             {users
               ?.filter((user: User) => {
-                // Si el usuario logeado es staff, solo mostrar usuarios con rol 'user'
                 if (currentUser && currentUser.role === "staff") {
                   return user.role === "user";
                 }
-                // Filtro normal por tabs
                 return roleFilter === "all" ? true : user.role === roleFilter;
               })
               .map((user: User) => (
@@ -195,7 +193,6 @@ const UsersPage = () => {
   );
 };
 
-// Extrae la fila de usuario como componente
 const UserTableRow = ({
   user,
   onEdit,

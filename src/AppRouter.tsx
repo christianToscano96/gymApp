@@ -1,3 +1,4 @@
+import React from "react";
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -31,9 +32,12 @@ const PaymentManagement = lazy(() => {
   return import("./preview/pages/payment-management/PaymentManagement");
 });
 
+const ProfilePreview = lazy(() => {
+  return import("./preview/pages/profile-preview/ProfilePreview");
+});
+
 function AppRouter() {
-  // Nueva función para validar el token con el backend
-  const checkAuth = async (token: string) => {
+  const checkAuth = React.useCallback(async (token: string) => {
     const response = await fetch("/api/auth/check", {
       method: "POST",
       headers: {
@@ -46,48 +50,25 @@ function AppRouter() {
     }
     const data = await response.json();
     return data.user;
-  };
+  }, []);
 
   const { data: user, isLoading } = useQuery({
     queryKey: ["user"],
-    queryFn: () => {
+    queryFn: React.useCallback(() => {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("No token encontrado");
       }
       return checkAuth(token);
-    },
+    }, [checkAuth]),
     retry: 0,
   });
 
   if (isLoading)
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background">
-        <svg
-          className="animate-spin h-12 w-12 text-primary mb-6"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-          ></path>
-        </svg>
         <span className="text-lg font-semibold text-primary mb-2">
           Cargando...
-        </span>
-        <span className="text-sm text-muted-foreground">
-          Por favor espera mientras preparamos todo para ti.
         </span>
       </div>
     );
@@ -134,7 +115,7 @@ function AppRouter() {
               }
             >
               <PrivateRoute requiredRole="administrator">
-                <GymLayout user={user} />
+                <GymLayout />
               </PrivateRoute>
             </Suspense>
           }
@@ -168,6 +149,14 @@ function AppRouter() {
             element={
               <Suspense fallback={<div>Cargando...</div>}>
                 <PaymentManagement />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/preview/:id"
+            element={
+              <Suspense fallback={<div>Cargando...</div>}>
+                <ProfilePreview id={user?.id} />
               </Suspense>
             }
           />
