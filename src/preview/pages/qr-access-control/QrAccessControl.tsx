@@ -49,7 +49,6 @@ const QrAccessControl = () => {
 
   const [users, setUsers] = useState<User[]>([]);
 
-  console.log(accessLogs);
   useEffect(() => {
     fetchUsers().then((data: User[]) => {
       const onlyUsers = data.filter(

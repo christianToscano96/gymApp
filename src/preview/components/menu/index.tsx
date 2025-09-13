@@ -16,9 +16,7 @@ interface MenuProps {
 const Menu = React.memo(({ currentUser }: MenuProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  React.useEffect(() => {
-    console.log(currentUser);
-  }, [currentUser]);
+
   return (
     <div className="mt-10 flex flex-row overflow-x-auto whitespace-nowrap gap-2 md:gap-5 px-2 md:pl-10 w-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent ">
       {currentUser?.role === "administrator" && (

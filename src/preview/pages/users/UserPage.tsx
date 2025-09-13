@@ -42,13 +42,20 @@ const UsersPage = () => {
   });
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const { data: currentUser } = useCurrentUser();
-  const roleTabs = [
-    { label: "Todos", value: "all" },
-    { label: "Usuarios", value: "user" },
-    { label: "Administradores", value: "administrator" },
-    { label: "Personal", value: "staff" },
-    { label: "Entrenadores", value: "trainer" },
-  ];
+  const roleTabs =
+    currentUser?.role === "staff"
+      ? [
+          { label: "Todos", value: "all" },
+          { label: "Usuarios", value: "user" },
+          { label: "Entrenadores", value: "trainer" },
+        ]
+      : [
+          { label: "Todos", value: "all" },
+          { label: "Usuarios", value: "user" },
+          { label: "Administradores", value: "administrator" },
+          { label: "Personal", value: "staff" },
+          { label: "Entrenadores", value: "trainer" },
+        ];
   const {
     data: users,
     isLoading,
@@ -59,7 +66,6 @@ const UsersPage = () => {
     staleTime: 1000 * 60 * 5,
     refetchInterval: 5000,
   });
-  console.log(users);
 
   const deleteUser = useCallback(
     async (id: string) => {
@@ -101,15 +107,13 @@ const UsersPage = () => {
           Nuevo Usuario
         </Button>
       </div>
-      {/* Tabs para filtrar por rol usando shadcn/ui */}
-      {currentUser?.role === "administrator" && (
-        <Tabs
-          tabs={roleTabs}
-          value={roleFilter}
-          onChange={setRoleFilter}
-          className="mt-6 mb-2"
-        />
-      )}
+
+      <Tabs
+        tabs={roleTabs}
+        value={roleFilter}
+        onChange={setRoleFilter}
+        className="mt-6 mb-2"
+      />
 
       {isLoading && <div>Loading...</div>}
       <ScrollArea className="h-[calc(80vh-0px)] mt-10">
@@ -131,7 +135,10 @@ const UsersPage = () => {
             {users
               ?.filter((user: User) => {
                 if (currentUser && currentUser.role === "staff") {
-                  return user.role === "user";
+                  if (roleFilter === "all") {
+                    return user.role === "user" || user.role === "trainer";
+                  }
+                  return user.role === roleFilter;
                 }
                 return roleFilter === "all" ? true : user.role === roleFilter;
               })

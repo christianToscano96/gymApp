@@ -52,7 +52,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   const { avatar, setAvatar, handleAvatarChange } = useAvatarResize();
   const [expirationType, setExpirationType] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  console.log(errors);
+
   const STATUS_OPTIONS = [
     { label: "Activo", value: "Activo" },
     { label: "Pendiente", value: "Pendiente" },
@@ -65,7 +65,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
     { label: "Personal", value: "staff" },
     { label: "Entrenador", value: "trainer" },
   ];
-  console.log(form);
+
   function getRoleOptions(userRole?: string) {
     if (userRole === "staff") {
       return ALL_ROLE_OPTIONS.filter(
@@ -114,7 +114,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
       setExpirationType("");
     }
   }, [user, id, setAvatar]);
-  console.log(form.dueDate);
+
   if (isLoading) {
     return (
       <div className="max-w-md mx-auto bg-white p-6 space-y-4">

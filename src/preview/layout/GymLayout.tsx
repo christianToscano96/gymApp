@@ -9,9 +9,10 @@ import { Toaster } from "sonner";
 
 export default function GymLayout() {
   const location = useLocation();
-  const isProfilePreview = /^\/preview\/(?!users$|dashboard$)[\w-]+$/.test(
-    location.pathname
-  );
+  const isProfilePreview =
+    /^\/preview\/(?!users$|dashboard$|qr-access-control$|payments$)[\w-]+$/.test(
+      location.pathname
+    );
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
