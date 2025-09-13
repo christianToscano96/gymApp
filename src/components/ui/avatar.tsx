@@ -5,7 +5,6 @@ export interface AvatarProps {
   alt?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
-  fallback?: React.ReactNode;
   onClick?: () => void;
 }
 
@@ -20,7 +19,6 @@ export const Avatar: React.FC<AvatarProps> = ({
   alt = "Avatar",
   size = "md",
   className = "",
-  fallback,
   onClick,
 }) => {
   const [imgError, setImgError] = React.useState(false);
@@ -47,8 +45,6 @@ export const Avatar: React.FC<AvatarProps> = ({
           className="object-cover w-full h-full"
           onError={() => setImgError(true)}
         />
-      ) : fallback ? (
-        fallback
       ) : (
         <span className="text-gray-500 font-bold">{getInitials(alt)}</span>
       )}

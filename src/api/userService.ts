@@ -1,10 +1,21 @@
-// Buscar usuario por _id
-// (dejar solo una declaración más abajo)
-// Buscar usuario por código QR
-export const fetchUserByQrCode = async (qrCode: string) => {
-  const res = await fetch(`/api/users/qr/${qrCode}`);
-  if (!res.ok) throw new Error("Usuario no encontrado");
+// Utilidad para fetch con manejo de errores
+async function fetchWithErrorHandling(url: string, options?: RequestInit, defaultErrorMsg = "Error en la petición") {
+  const res = await fetch(url, options);
+  if (!res.ok) {
+    let errorMsg = defaultErrorMsg;
+    try {
+      const errorData = await res.json();
+      errorMsg = errorData?.error || errorData?.message || defaultErrorMsg;
+    } catch (e) {
+      // 
+    }
+    throw new Error(errorMsg);
+  }
   return res.json();
+}
+
+export const fetchUserByQrCode = async (qrCode: string) => {
+  return fetchWithErrorHandling(`/api/users/qr/${qrCode}`, undefined, "Usuario no encontrado");
 };
 
 import type { User } from "@/preview/interfaces/preview.interfaces";
@@ -12,15 +23,11 @@ import type { User } from "@/preview/interfaces/preview.interfaces";
 
 // src/api/userService.ts
 export const fetchUsers = async () => {
-  const res = await fetch("/api/users");
-  if (!res.ok) throw new Error("Error al obtener usuarios");
-  return res.json();
+  return fetchWithErrorHandling("/api/users", undefined, "Error al obtener usuarios");
 };
 
 export const fetchUserById = async (_id: string) => {
-  const res = await fetch(`/api/users/${_id}`);
-  if (!res.ok) throw new Error("Error al obtener usuario");
-  return res.json();
+  return fetchWithErrorHandling(`/api/users/${_id}`, undefined, "Error al obtener usuario");
 };
 
 // Crear usuario
@@ -49,43 +56,25 @@ export const createUser = async (userData: {
     dueDate: userData.dueDate || null,
     avatar: userData.avatar || null,
   };
-  const res = await fetch("http://localhost:5050/api/auth/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  return fetchWithErrorHandling(
+    "http://localhost:5050/api/auth/register",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    let errorMsg = "Error al crear usuario";
-    try {
-      const errorData = await res.json();
-      if (errorData?.error) errorMsg = errorData.error;
-    } catch (e) {
-      console.log(e)
-    }
-    throw new Error(errorMsg);
-  }
-  return res.json();
+    "Error al crear usuario"
+  );
 };
 
 export const updateUser = async (id: string, userData: Omit<User, "id">) => {
-  const res = await fetch(`/api/users/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
+  return fetchWithErrorHandling(
+    `/api/users/${id}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(userData),
     },
-    body: JSON.stringify(userData),
-  });
-  if (!res.ok) {
-    let errorMsg = "Error al actualizar usuario";
-    try {
-      const errorData = await res.json();
-      if (errorData?.message) errorMsg = errorData.message;
-    } catch (e) {
-      console.log(e);
-    }
-    throw new Error(errorMsg);
-  }
-  return res.json();
+    "Error al actualizar usuario"
+  );
 };
