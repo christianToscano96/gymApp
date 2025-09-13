@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -42,13 +42,20 @@ const UsersPage = () => {
   });
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const { data: currentUser } = useCurrentUser();
-  const roleTabs = [
-    { label: "Todos", value: "all" },
-    { label: "Usuarios", value: "user" },
-    { label: "Administradores", value: "administrator" },
-    { label: "Staff", value: "staff" },
-  ];
-
+  const roleTabs =
+    currentUser?.role === "staff"
+      ? [
+          { label: "Todos", value: "all" },
+          { label: "Usuarios", value: "user" },
+          { label: "Entrenadores", value: "trainer" },
+        ]
+      : [
+          { label: "Todos", value: "all" },
+          { label: "Usuarios", value: "user" },
+          { label: "Administradores", value: "administrator" },
+          { label: "Personal", value: "staff" },
+          { label: "Entrenadores", value: "trainer" },
+        ];
   const {
     data: users,
     isLoading,
@@ -57,7 +64,7 @@ const UsersPage = () => {
     queryKey: ["users"],
     queryFn: fetchUsers,
     staleTime: 1000 * 60 * 5,
-    refetchInterval: 5000, // Actualiza cada 5 segundos
+    refetchInterval: 5000,
   });
 
   const deleteUser = useCallback(
@@ -100,15 +107,13 @@ const UsersPage = () => {
           Nuevo Usuario
         </Button>
       </div>
-      {/* Tabs para filtrar por rol usando shadcn/ui */}
-      {currentUser?.role === "administrator" && (
-        <Tabs
-          tabs={roleTabs}
-          value={roleFilter}
-          onChange={setRoleFilter}
-          className="mt-6 mb-2"
-        />
-      )}
+
+      <Tabs
+        tabs={roleTabs}
+        value={roleFilter}
+        onChange={setRoleFilter}
+        className="mt-6 mb-2"
+      />
 
       {isLoading && <div>Loading...</div>}
       <ScrollArea className="h-[calc(80vh-0px)] mt-10">
@@ -129,11 +134,12 @@ const UsersPage = () => {
           <TableBody>
             {users
               ?.filter((user: User) => {
-                // Si el usuario logeado es staff, solo mostrar usuarios con rol 'user'
                 if (currentUser && currentUser.role === "staff") {
-                  return user.role === "user";
+                  if (roleFilter === "all") {
+                    return user.role === "user" || user.role === "trainer";
+                  }
+                  return user.role === roleFilter;
                 }
-                // Filtro normal por tabs
                 return roleFilter === "all" ? true : user.role === roleFilter;
               })
               .map((user: User) => (
@@ -195,7 +201,6 @@ const UsersPage = () => {
   );
 };
 
-// Extrae la fila de usuario como componente
 const UserTableRow = ({
   user,
   onEdit,

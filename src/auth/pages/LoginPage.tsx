@@ -15,78 +15,85 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
   const [showSuccess, setShowSuccess] = React.useState(false);
   const [successMsg, setSuccessMsg] = React.useState("");
   const navigate = useNavigate();
-  // Elimina queryClient, usa Zustand
   const setUser = useUserStore((state) => state.setUser);
   const queryClient = useQueryClient();
-  // Eliminado setUser de UserContext
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState("");
   const [isPending, setIsPending] = React.useState(false);
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+
+  // Limpiar mensajes al cambiar email o password
+  React.useEffect(() => {
     setError("");
-    setIsPending(true);
-    try {
-      const data = await loginUser({ email, password });
-      if (!data.user || !data.user.role) {
+    setSuccessMsg("");
+    setShowSuccess(false);
+  }, [email, password]);
+
+  const onSubmit = React.useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setError("");
+      setIsPending(true);
+      try {
+        const data = await loginUser({ email, password });
+        if (!data.user || !data.user.role) {
+          setError(
+            "No se recibió el rol del usuario. Contacta al administrador."
+          );
+          setIsPending(false);
+          return;
+        }
+        setUser({
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          token: data.token,
+          role: data.user.role,
+        });
+        queryClient.setQueryData(["user"], {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          token: data.token,
+          role: data.user.role,
+          phone: data.user.phone,
+          status: data.user.status,
+          membership: data.user.membership,
+          lastVisit: data.user.lastVisit,
+          avatar: data.user.avatar,
+          joinDate: data.user.joinDate,
+          dueDate: data.user.dueDate,
+          qrCode: data.user.qrCode,
+          qrImage: data.user.qrImage || data.qrImage,
+          password: undefined,
+        });
+        localStorage.setItem("userId", data.user.id);
+        setSuccessMsg("Inicio de sesión exitoso");
+        setShowSuccess(true);
+        // Redirigir según el rol
+        if (data.user.role === "administrator") {
+          navigate("/preview", { replace: true });
+        } else if (data.user.role === "staff") {
+          navigate("/preview/users", { replace: true });
+        } else if (data.user.role === "user") {
+          navigate("/user-preview", { replace: true });
+        } else {
+          setError("Rol de usuario no permitido para acceder a la app.");
+        }
+      } catch (err) {
         setError(
-          "No se recibió el rol del usuario. Contacta al administrador."
+          err instanceof Error
+            ? err.message
+            : "Credenciales incorrectas. Intenta de nuevo."
         );
+        setSuccessMsg("");
+        setShowSuccess(false);
+      } finally {
         setIsPending(false);
-        return;
       }
-      // Guardar usuario en Zustand
-      setUser({
-        id: data.user.id,
-        name: data.user.name,
-        email: data.user.email,
-        token: data.token,
-        role: data.user.role,
-      });
-      // Guardar usuario en React Query para UserPreviewPage
-      queryClient.setQueryData(["user"], {
-        id: data.user.id,
-        name: data.user.name,
-        email: data.user.email,
-        token: data.token,
-        role: data.user.role,
-        phone: data.user.phone,
-        status: data.user.status,
-        membership: data.user.membership,
-        lastVisit: data.user.lastVisit,
-        avatar: data.user.avatar,
-        joinDate: data.user.joinDate,
-        dueDate: data.user.dueDate,
-        qrCode: data.user.qrCode,
-        qrImage: data.user.qrImage || data.qrImage,
-        password: undefined,
-      });
-      // Guardar el id en localStorage para TanStack Query
-      localStorage.setItem("userId", data.user.id);
-      setSuccessMsg("Inicio de sesión exitoso");
-      setShowSuccess(true);
-      // Redirigir según el rol
-      if (data.user.role === "administrator" || data.user.role === "staff") {
-        navigate("/preview", { replace: true });
-      } else if (data.user.role === "user") {
-        navigate("/user-preview", { replace: true });
-      } else {
-        setError("Rol de usuario no permitido para acceder a la app.");
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Credenciales incorrectas. Intenta de nuevo."
-      );
-      console.log(err);
-      setSuccessMsg("");
-      setShowSuccess(false);
-    } finally {
-      setIsPending(false);
-    }
-  };
+    },
+    [email, password, navigate, queryClient, setUser]
+  );
 
   return (
     <div

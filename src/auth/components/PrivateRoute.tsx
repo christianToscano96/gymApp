@@ -11,8 +11,10 @@ const PrivateRoute = ({ requiredRole, children }: Props) => {
   if (
     requiredRole &&
     !(
-      (requiredRole === "administrator" && ["administrator", "staff"].includes(user?.role)) ||
-      (requiredRole === "staff" && ["administrator", "staff"].includes(user?.role)) ||
+      (requiredRole === "administrator" &&
+        ["administrator", "staff"].includes(user?.role)) ||
+      (requiredRole === "staff" &&
+        ["administrator", "staff"].includes(user?.role)) ||
       (requiredRole === "user" && user?.role === "user")
     )
   ) {

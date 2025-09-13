@@ -23,7 +23,6 @@ export const fetchUserById = async (_id: string) => {
   return res.json();
 };
 
-// Actualizar usuario por id
 // Crear usuario
 export const createUser = async (userData: {
   name: string;
@@ -31,7 +30,7 @@ export const createUser = async (userData: {
   password: string;
   phone: string;
   dni?: string;
-  role?: "administrator" | "user" | "staff";
+  role?: "administrator" | "user" | "staff" | "trainer";
   joinDate: string | null;
   dueDate?: string | null;
   membership?: string; // id de Payment
