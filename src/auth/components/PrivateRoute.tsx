@@ -2,7 +2,7 @@ import { Navigate } from "react-router";
 import { useUserStore } from "@/hook/useUserStore";
 
 interface Props {
-  requiredRole?: "administrator" | "user" | "staff";
+  requiredRole?: "administrator" | "user" | "staff" | "trainer";
   children: React.ReactNode;
 }
 const PrivateRoute = ({ requiredRole, children }: Props) => {
@@ -15,7 +15,8 @@ const PrivateRoute = ({ requiredRole, children }: Props) => {
         ["administrator", "staff"].includes(user?.role)) ||
       (requiredRole === "staff" &&
         ["administrator", "staff"].includes(user?.role)) ||
-      (requiredRole === "user" && user?.role === "user")
+      (requiredRole === "user" && user?.role === "user") ||
+      (requiredRole === "trainer" && user?.role === "trainer")
     )
   ) {
     return (
@@ -28,6 +29,8 @@ const PrivateRoute = ({ requiredRole, children }: Props) => {
           to={
             ["administrator", "staff"].includes(user?.role)
               ? "/preview"
+              : user?.role === "trainer"
+              ? "/trainer-preview"
               : "/user-preview"
           }
         />
