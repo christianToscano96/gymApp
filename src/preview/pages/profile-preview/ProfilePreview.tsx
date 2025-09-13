@@ -5,6 +5,7 @@ import { useCurrentUser } from "@/hook/useCurrentUser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAvatarResize } from "@/hook/useAvatarResize";
+import Badge from "@/components/ui/badge";
 
 interface ProfilePreviewProps {
   id: string;
@@ -40,7 +41,7 @@ const ProfilePreview: React.FC<ProfilePreviewProps> = ({ id }) => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
+    <div className="flex flex-col items-center justify-start min-h-screen">
       <div className="w-full max-w-lg mx-auto">
         <Button
           variant="link"
@@ -111,11 +112,9 @@ const ProfilePreview: React.FC<ProfilePreviewProps> = ({ id }) => {
           </label>
           <label className="text-gray-700 font-semibold">
             Estado
-            <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              defaultValue={status}
-            />
+            <span className="block text-base font-bold text-gray-700 mt-2">
+              <Badge status={status}>{status}</Badge>
+            </span>
           </label>
         </div>
         <div className="w-full grid grid-cols-2 gap-4 mt-8">

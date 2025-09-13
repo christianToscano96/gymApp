@@ -31,7 +31,6 @@ app.get("/api/users/qr/:qrCode", async (req, res) => {
 
 connectDB();
 
-// Endpoint básico para crear usuario
 app.post("/api/users", async (req, res) => {
   try {
     // Si el usuario ya existe, no sobrescribir el rol
@@ -58,9 +57,6 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
-// Endpoint para obtener todos los usuarios
-// Endpoint para obtener usuario por ID
-// Endpoint para actualizar usuario por ID
 app.put("/api/users/:id", async (req, res) => {
   try {
     const { id } = req.params;

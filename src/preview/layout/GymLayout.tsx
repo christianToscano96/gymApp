@@ -9,7 +9,9 @@ import { Toaster } from "sonner";
 
 export default function GymLayout() {
   const location = useLocation();
-  const isProfilePreview = /^\/preview\/\w+$/.test(location.pathname);
+  const isProfilePreview = /^\/preview\/(?!users$|dashboard$)[\w-]+$/.test(
+    location.pathname
+  );
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -19,13 +21,12 @@ export default function GymLayout() {
     queryClient.removeQueries({ queryKey: ["user"] });
     navigate("/auth", { replace: true });
   };
-
   return (
     <div className="flex-col h-screen bg-background">
       <Toaster position="top-center" richColors />
 
       {/* Header */}
-      <header className="flex justify-between border-b p-2 items-center pl-10 pr-10">
+      <header className="flex justify-between border-b p-4 items-center pl-10 pr-10">
         <div className="flex items-center gap-2">
           <div className="h-6 w-6 rounded-full bg-primary" />
           <Link to="/" className="font-semibold">

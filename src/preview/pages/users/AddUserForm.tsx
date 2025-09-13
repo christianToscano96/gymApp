@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useCurrentUser } from "@/hook/useCurrentUser";
 import { useAvatarResize } from "@/hook/useAvatarResize";
 import type { User } from "@/preview/interfaces/preview.interfaces";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,8 @@ const initialState: Omit<User, "_id"> = {
 };
 
 export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
+  // Obtener usuario actual
+  const { data: currentUser } = useCurrentUser();
   const {
     data: user,
     isLoading,
@@ -49,17 +52,30 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   const { avatar, setAvatar, handleAvatarChange } = useAvatarResize();
   const [expirationType, setExpirationType] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
+  console.log(errors);
   const STATUS_OPTIONS = [
     { label: "Activo", value: "Activo" },
     { label: "Pendiente", value: "Pendiente" },
     { label: "Vencido", value: "Vencido" },
   ];
-  const ROLE_OPTIONS = [
+
+  const ALL_ROLE_OPTIONS = [
     { label: "Administrador", value: "administrator" },
     { label: "Usuario", value: "user" },
-    { label: "Staff", value: "staff" },
+    { label: "Personal", value: "staff" },
+    { label: "Entrenador", value: "trainer" },
   ];
+  console.log(form);
+  function getRoleOptions(userRole?: string) {
+    if (userRole === "staff") {
+      return ALL_ROLE_OPTIONS.filter(
+        (opt) => opt.value === "user" || opt.value === "trainer"
+      );
+    }
+    return ALL_ROLE_OPTIONS;
+  }
+
+  const ROLE_OPTIONS = getRoleOptions(currentUser?.role);
   const EXPIRATION_OPTIONS = [
     { label: "1 día", value: "1" },
     { label: "15 días", value: "15" },
@@ -174,9 +190,15 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
     if (!form.dni) newErrors.dni = "El DNI es requerido.";
     if (!form.role) newErrors.role = "El rol es requerido.";
     if (!form.status) newErrors.status = "El estado es requerido.";
-    if (!form.joinDate && !["administrator", "staff"].includes(form.role))
+    if (
+      !form.joinDate &&
+      !["administrator", "staff", "trainer"].includes(form.role)
+    )
       newErrors.joinDate = "La fecha de ingreso es requerida.";
-    if (!expirationType && !["administrator", "staff"].includes(form.role))
+    if (
+      !expirationType &&
+      !["administrator", "staff", "trainer"].includes(form.role)
+    )
       newErrors.expirationType = "El tipo de vencimiento es requerido.";
     if (
       form.joinDate &&
@@ -207,9 +229,12 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
       if (onClose) onClose();
     } else {
       try {
-        const normalizedRole = ["administrator", "user", "staff"].includes(
-          form.role
-        )
+        const normalizedRole = [
+          "administrator",
+          "user",
+          "staff",
+          "trainer",
+        ].includes(form.role)
           ? form.role
           : "user";
         const normalizedStatus =
@@ -435,7 +460,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           <div className="text-red-500 text-xs mt-1">{errors.dni}</div>
         )}
       </div>
-      {!["administrator", "staff"].includes(form.role) && (
+      {!["administrator", "staff", "trainer"].includes(form.role) && (
         <>
           <div>
             <Label className="block text-sm font-medium text-gray-700">

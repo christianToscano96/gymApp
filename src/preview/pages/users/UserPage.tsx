@@ -47,8 +47,8 @@ const UsersPage = () => {
     { label: "Usuarios", value: "user" },
     { label: "Administradores", value: "administrator" },
     { label: "Personal", value: "staff" },
+    { label: "Entrenadores", value: "trainer" },
   ];
-
   const {
     data: users,
     isLoading,
@@ -59,6 +59,7 @@ const UsersPage = () => {
     staleTime: 1000 * 60 * 5,
     refetchInterval: 5000,
   });
+  console.log(users);
 
   const deleteUser = useCallback(
     async (id: string) => {
