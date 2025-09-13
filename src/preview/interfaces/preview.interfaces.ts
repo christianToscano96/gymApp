@@ -46,4 +46,3 @@ export interface Staff {
   avatar?: string
 }
 
-export type MenuItem = "tenants" | "apartments" | "staff"
