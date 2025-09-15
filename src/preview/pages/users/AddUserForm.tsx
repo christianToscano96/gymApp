@@ -258,16 +258,36 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
             .repeat(Math.ceil(6 / form.dni.length))
             .slice(0, 6);
         }
-        await createUser({
-          ...form,
-          avatar,
-          role: normalizedRole as "administrator" | "user" | "staff",
-          status: normalizedStatus as "activo" | "vencido" | "pendiente",
-          membership: normalizedMembership,
-          password: safePassword,
-          joinDate: normalizedJoinDate,
-          dueDate,
-        });
+        // No enviar qrCode ni qrImage si el rol no es "user"
+        let userPayload;
+        if (normalizedRole === "user") {
+          userPayload = {
+            ...form,
+            avatar,
+            role: normalizedRole as "administrator" | "user" | "staff" | "trainer",
+            status: normalizedStatus as "activo" | "vencido" | "pendiente",
+            membership: normalizedMembership,
+            password: safePassword,
+            joinDate: normalizedJoinDate,
+            dueDate,
+          };
+        } else {
+          userPayload = {
+            name: form.name,
+            email: form.email,
+            password: safePassword,
+            phone: form.phone,
+            dni: form.dni,
+            role: normalizedRole as "administrator" | "user" | "staff" | "trainer",
+            joinDate: normalizedJoinDate,
+            dueDate,
+            membership: form.membership,
+            lastVisit: form.lastVisit,
+            status: normalizedStatus as "activo" | "vencido" | "pendiente",
+            avatar,
+          };
+        }
+        await createUser(userPayload);
         toast.success("Usuario creado correctamente");
         setForm(initialState);
         setAvatar("");
