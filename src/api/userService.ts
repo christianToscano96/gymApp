@@ -1,3 +1,6 @@
+import type { User } from "@/preview/interfaces/preview.interfaces";
+
+
 // Utilidad para fetch con manejo de errores
 async function fetchWithErrorHandling(url: string, options?: RequestInit, defaultErrorMsg = "Error en la petición") {
   const res = await fetch(url, options);
@@ -18,7 +21,6 @@ export const fetchUserByQrCode = async (qrCode: string) => {
   return fetchWithErrorHandling(`/api/users/qr/${qrCode}`, undefined, "Usuario no encontrado");
 };
 
-import type { User } from "@/preview/interfaces/preview.interfaces";
 
 
 // src/api/userService.ts
