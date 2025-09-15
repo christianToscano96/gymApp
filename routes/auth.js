@@ -79,17 +79,17 @@ router.post("/register", async (req, res) => {
       avatar: avatar || null,
     });
     await user.save();
-      // Solo generar QR si el rol es "user"
-      let qrCode = null;
-      let qrImage = null;
-      if (role === "user") {
-        const qr = await generateQr(user._id.toString());
-        user.qrCode = qr.qrCode;
-        user.qrImage = qr.qrImage;
-        qrCode = qr.qrCode;
-        qrImage = qr.qrImage;
-        await user.save();
-      }
+    // Solo generar QR si el rol es "user"
+    let qrCode = null;
+    let qrImage = null;
+    if (role === "user") {
+      const qr = await generateQr(user._id.toString());
+      user.qrCode = qr.qrCode;
+      user.qrImage = qr.qrImage;
+      qrCode = qr.qrCode;
+      qrImage = qr.qrImage;
+      await user.save();
+    }
 
     // Enviar email de notificación al usuario
     try {
