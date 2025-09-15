@@ -364,7 +364,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
               onChange={(value) =>
                 setForm((prev) => ({
                   ...prev,
-                  role: value as "administrator" | "user" | "staff",
+                  role: value as "administrator" | "user" | "staff" | "trainer",
                 }))
               }
               placeholder="Selecciona rol"

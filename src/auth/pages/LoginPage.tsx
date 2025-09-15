@@ -77,6 +77,8 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
           navigate("/preview/users", { replace: true });
         } else if (data.user.role === "user") {
           navigate("/user-preview", { replace: true });
+        } else if (data.user.role === "trainer") {
+          navigate("/trainer-preview", { replace: true });
         } else {
           setError("Rol de usuario no permitido para acceder a la app.");
         }

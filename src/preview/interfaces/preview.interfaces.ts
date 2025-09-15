@@ -11,7 +11,11 @@ export interface User {
   dueDate: string,
   qrCode: string,
   qrImage?: string,
-  role: string,
+  role: 'admin' | 'staff' | 'user' | 'trainer',
+  trainerData?: {
+    specialty: string;
+    trainees: string[];
+  }
   password: string,
   dni: string
 }
