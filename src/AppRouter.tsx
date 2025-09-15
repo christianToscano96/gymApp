@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import AuthLayout from "./auth/layaout/AuthLayout";
 import LoginPage from "./auth/pages/LoginPage";
-
 import PrivateRoute from "./auth/components/PrivateRoute";
 import RegisterForm from "./auth/pages/RegisterForm";
 
@@ -14,6 +13,10 @@ const GymLayout = lazy(() => {
 
 const UserLayout = lazy(() => {
   return import("./user-preview/layout/UserLagout");
+});
+
+const TrainerLayout = lazy(() => {
+  return import("./trainer-preview/layout/TrainerLayout");
 });
 
 const UserPage = lazy(() => {
@@ -170,6 +173,18 @@ function AppRouter() {
             <Suspense fallback={<div>Cargando...</div>}>
               <PrivateRoute requiredRole="user">
                 <UserLayout />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+        {/* RUTA TRAINER  */}
+        <Route
+          path="/trainer-preview"
+          element={
+            <Suspense fallback={<div>Cargando...</div>}>
+              <PrivateRoute requiredRole="trainer">
+                <TrainerLayout />
               </PrivateRoute>
             </Suspense>
           }

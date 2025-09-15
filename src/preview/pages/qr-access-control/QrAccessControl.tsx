@@ -1,7 +1,8 @@
+// React
 import { useEffect, useState } from "react";
-import type { AccessLogs } from "@/preview/interfaces/preview.interfaces";
+import type { AccessLogs, User } from "@/preview/interfaces/preview.interfaces";
 import ZxingQrScanner from "@/preview/components/ZxingQrScanner";
-import type { User } from "@/preview/interfaces/preview.interfaces";
+import Avatar from "@/components/ui/avatar";
 import {
   Card,
   CardContent,
@@ -21,11 +22,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { QrCode, CheckCircle, XCircle, Search, Clock } from "lucide-react";
-import Avatar from "@/components/ui/avatar";
-import { fetchUsers } from "@/api/userService";
-import { useLogUserAccess } from "@/api/accessLogService";
-import { useAccessLogs } from "@/api/accessLogService";
-import { fetchUserByQrCode } from "@/api/userService";
+import { fetchUsers, fetchUserByQrCode } from "@/api/userService";
+import { useLogUserAccess, useAccessLogs } from "@/api/accessLogService";
 import { toast } from "sonner";
 
 interface ScannedUser {
@@ -90,6 +88,7 @@ const QrAccessControl = () => {
     } catch {
       setScannedUser(null);
       setShowScanner(true);
+      toast.error("El código QR no existe o el usuario no fue encontrado.");
     }
   };
 
@@ -167,10 +166,10 @@ const QrAccessControl = () => {
   const avgPerHour = logsToday.length / hoursWithAccess;
 
   return (
-    <main className="w-full min-h-screen flex-1,0_8px_32px_rgba(17,17,26,0.05)] pb-20">
-      <div className="flex flex-col gap-4 px-2 pt-4 lg:grid lg:grid-cols-2 lg:px-0">
+    <main className="w-full min-h-screen bg-white flex flex-col pb-24 px-0 sm:px-4">
+      <div className="flex flex-col gap-4 pt-4 lg:grid lg:grid-cols-2 lg:px-0">
         {/* QR Scanner */}
-        <Card>
+        <Card className="shadow-sm rounded-none sm:rounded-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <QrCode className="h-6 w-6 sm:h-5 sm:w-5" />
@@ -180,58 +179,53 @@ const QrAccessControl = () => {
               Escanea el código QR del miembro
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 px-2 sm:px-6">
             {showScanner && !scannedUser && (
-              <div className="flex flex-col items-center justify-center min-h-44 bg-muted rounded-lg border-2 border-dashed p-2 sm:p-4 w-full">
+              <div className="flex flex-col items-center justify-center min-h-44 bg-muted rounded-xl border-2 border-dashed p-3 w-full">
                 <ZxingQrScanner
                   onScan={handleScan}
                   stopScanning={!showScanner}
                   videoStyle={{
                     width: "100%",
-                    borderRadius: 12,
-                    maxHeight: 260,
+                    borderRadius: 16,
+                    maxHeight: 220,
                   }}
                 />
               </div>
             )}
 
             {scannedUser && (
-              <Card className="border-primary">
-                <CardContent className="pt-4 sm:pt-6">
-                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:space-x-4 mb-4">
+              <Card className="border-primary bg-white shadow-md">
+                <CardContent className="pt-4 pb-2">
+                  <div className="flex flex-col items-center gap-2 mb-4">
                     <Avatar
                       src={scannedUser.photo}
                       alt={scannedUser.name}
-                      className="w-16 h-16"
+                      className="w-20 h-20 border-2 border-primary"
                     />
-                    <div className="flex-1 text-center sm:text-left">
-                      <h3 className="font-semibold text-base sm:text-lg">
-                        {scannedUser.name}
-                      </h3>
-                      <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:space-x-4 mt-1">
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                          Último pago:{" "}
-                          {new Date(
-                            scannedUser.lastPayment
-                          ).toLocaleDateString()}
-                        </p>
-                        <Badge
-                          status={scannedUser.status}
-                          className="text-xs sm:text-sm"
-                        >
-                          {scannedUser.status}
-                        </Badge>
-                      </div>
+                    <h3 className="font-semibold text-lg text-center">
+                      {scannedUser.name}
+                    </h3>
+                    <div className="flex flex-col items-center gap-1 mt-1">
+                      <p className="text-xs text-muted-foreground">
+                        Último pago:{" "}
+                        {new Date(scannedUser.lastPayment).toLocaleDateString()}
+                      </p>
+                      <Badge
+                        status={scannedUser.status}
+                        className="text-xs px-2 py-1"
+                      >
+                        {scannedUser.status}
+                      </Badge>
                     </div>
                   </div>
-
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex flex-col gap-2 mt-2">
                     <Button
                       onClick={() => {
                         handleAccess(true);
                         toast.success("Acceso permitido");
                       }}
-                      className="w-full sm:flex-1 bg-primary hover:bg-primary/90 py-3 text-base"
+                      className="w-full py-4 text-base rounded-xl"
                     >
                       <CheckCircle className="h-5 w-5 mr-2" />
                       Permitir Acceso
@@ -239,7 +233,7 @@ const QrAccessControl = () => {
                     <Button
                       onClick={() => handleAccess(false)}
                       variant="destructive"
-                      className="w-full sm:flex-1 py-3 text-base"
+                      className="w-full py-4 text-base rounded-xl"
                     >
                       <XCircle className="h-5 w-5 mr-2" />
                       Denegar Acceso
@@ -309,7 +303,7 @@ const QrAccessControl = () => {
         </Card>
       </div>
       {/* Access Logs */}
-      <Card className="mt-6 px-2 sm:px-0">
+      <Card className="mt-6 px-0 sm:px-0 shadow-sm rounded-none sm:rounded-xl">
         <CardHeader>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div>
@@ -331,9 +325,9 @@ const QrAccessControl = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md  overflow-x-auto">
-            <Table className="min-w-[400px] sm:min-w-0">
+        <CardContent className="px-2 sm:px-6">
+          <div className="rounded-md overflow-x-auto">
+            <Table className="min-w-[340px] sm:min-w-0 text-xs">
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-xs sm:text-sm">Usuario</TableHead>
