@@ -1,4 +1,4 @@
-import { Link, useNavigate, Outlet, useLocation } from "react-router";
+import { useNavigate, Outlet, useLocation } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import Menu from "../components/menu";
 import Avatar from "@/components/ui/avatar";
@@ -30,9 +30,7 @@ export default function GymLayout() {
       <header className="flex justify-between border-b p-4 items-center pl-10 pr-10">
         <div className="flex items-center gap-2">
           <div className="h-6 w-6 rounded-full bg-primary" />
-          <Link to="/" className="font-semibold">
-            Gymnacio
-          </Link>
+          Gymnacio
         </div>
 
         <div className="text-lg flex items-center gap-4">
