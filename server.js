@@ -6,13 +6,26 @@ import User from "./models/User.js";
 import paymentRoutes from "./routes/payments.js";
 import accessLogRoutes from "./routes/accessLogs.js";
 import authRoutes from "./routes/auth.js";
+import trainerRoutes from "./routes/trainers.js";
 import authMiddleware from "./middleware/auth.js";
 import dotenv from "dotenv";
 dotenv.config();
 
+import http from 'http';
+import { Server as SocketServer } from 'socket.io';
 const app = express();
 app.use(cors());
 app.use(express.json());
+const server = http.createServer(app);
+const io = new SocketServer(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  },
+});
+io.on('connection', (socket) => {
+  console.log('Cliente conectado:', socket.id);
+});
 
 // Buscar usuario por código QR
 app.get("/api/users/qr/:qrCode", async (req, res) => {
@@ -124,6 +137,25 @@ app.get("/api/users", async (req, res) => {
 app.use("/api/payments", paymentRoutes);
 app.use("/api/access-logs", accessLogRoutes);
 app.use("/api/auth", authRoutes);
+// Intercepta la ruta de actualización de trainees para emitir evento
+app.put("/api/trainers/:trainerId/trainees", async (req, res) => {
+  try {
+    const { trainerId } = req.params;
+    const { trainees } = req.body;
+    const trainer = await User.findById(trainerId);
+    if (!trainer) {
+      return res.status(404).json({ error: "Trainer no encontrado" });
+    }
+    trainer.trainerData.trainees = trainees;
+    await trainer.save();
+    // Emitir evento a todos los clientes conectados
+    io.emit('traineesUpdated', { trainerId, trainees });
+    res.status(200).json(trainer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.use("/api/trainers", trainerRoutes);
 
 // Ejemplo de ruta protegida
 app.get("/api/protected", authMiddleware, (req, res) => {
@@ -131,4 +163,4 @@ app.get("/api/protected", authMiddleware, (req, res) => {
 });
 
 const PORT = process.env.PORT || 5050;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

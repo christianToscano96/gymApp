@@ -41,5 +41,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  trainerData: {
+    specialty: { type: String, default: "" },
+    trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  },
 });
 export default mongoose.model("User", userSchema);
