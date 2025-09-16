@@ -75,7 +75,7 @@ export default function GymLayout() {
         {!isProfilePreview && <Menu currentUser={currentUser} />}
 
         {/* Content Area */}
-        <div className="flex-1 mt-2 ml-10 mr-10">
+        <div className="flex-1 mt-2 px-2 md:px-10">
           <Outlet />
         </div>
       </div>

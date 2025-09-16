@@ -378,31 +378,33 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-md mx-auto bg-white p-2 space-y-4"
+  className="w-full h-full bg-white p-0 sm:p-6 md:p-8 space-y-3 md:space-y-4 overflow-auto"
     >
-      <div className="flex flex-col items-center">
-        <label htmlFor="avatar" className="cursor-pointer">
-          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-gray-100">
-            {avatar ? (
-              <img
-                src={avatar}
-                alt="Avatar"
-                className="object-cover w-full h-full"
-              />
-            ) : (
-              <span className="text-gray-400">Avatar</span>
-            )}
-          </div>
-          <Input
-            id="avatar"
-            name="avatar"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleAvatarChange}
-          />
-        </label>
-      </div>
+      {(id || typeof window === 'undefined' || window.innerWidth >= 640) && (
+        <div className="flex flex-col items-center mb-2">
+          <label htmlFor="avatar" className="cursor-pointer">
+            <div className="w-20 h-20 xs:w-24 xs:h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-gray-100">
+              {avatar ? (
+                <img
+                  src={avatar}
+                  alt="Avatar"
+                  className="object-cover w-full h-full"
+                />
+              ) : (
+                <span className="text-gray-400">Avatar</span>
+              )}
+            </div>
+            <Input
+              id="avatar"
+              name="avatar"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
+          </label>
+        </div>
+      )}
       <div>
         <Label className="block text-sm font-medium text-gray-700">
           Nombre
@@ -421,7 +423,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
       </div>
 
       {id === undefined || id === null ? (
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-2 sm:gap-4 sm:flex-row">
           <div className="flex-1 mt-1">
             <Label className="block text-sm font-medium text-gray-700">
               Rol
@@ -480,7 +482,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
         </div>
       )}
 
-      <div className="flex gap-4">
+  <div className="flex flex-col gap-2 sm:gap-4 sm:flex-row">
         <div className="flex-1">
           <Label className="block text-sm font-medium text-gray-700">
             Teléfono
@@ -555,7 +557,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
               <Label className="block text-sm font-medium text-gray-700 mb-1">
                 Tipo de Vencimiento
               </Label>
-              <div className="flex gap-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-4 mt-1">
                 {EXPIRATION_OPTIONS.map((option) => (
                   <label
                     key={option.value}
@@ -621,7 +623,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           <Label className="block text-sm font-medium text-gray-700 mb-1">
             Método de pago
           </Label>
-          <div className="flex gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-4 mt-1">
             {PAYMENT_METHODS.map((method) => (
               <label
                 key={method.value}
@@ -648,7 +650,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           </div>
         </div>
       )}
-      <Button type="submit" className="w-full py-2 px-4 transition mt-4">
+  <Button type="submit" className="w-full py-2 px-4 transition mt-3 md:mt-4">
         {id ? "Actualizar usuario" : "Crear usuario"}
       </Button>
     </form>
