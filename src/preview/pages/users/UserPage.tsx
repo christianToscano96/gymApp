@@ -40,7 +40,7 @@ const UsersPage = () => {
     openFormNewUser: false,
     selectedUserId: "",
   });
-  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("user");
   const { data: currentUser } = useCurrentUser();
   const roleTabs =
     currentUser?.role === "staff"
@@ -97,13 +97,17 @@ const UsersPage = () => {
     setDialogState((s) => ({ ...s, openFormNewUser: false }));
 
   return (
-    <main className="pl-20 pr-20 pt-10 flex-1 mt-2 bg-white rounded-[20px] shadow-[0_4px_16px_rgba(17,17,26,0.05),0_8px_32px_rgba(17,17,26,0.05)]">
-      <div className="flex justify-between items-center ">
-        <h1 className="text-2xl font-bold">Usuario</h1>
-        <div className="w-100">
+    <main className="px-2 md:px-20 pt-4 md:pt-10 flex-1 mt-2 bg-white rounded-[20px] shadow-[0_4px_16px_rgba(17,17,26,0.05),0_8px_32px_rgba(17,17,26,0.05)]">
+      <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center ">
+        <h1 className="text-xl md:text-2xl font-bold">Usuario</h1>
+        <div className="w-full md:w-1/3">
           <Search />
         </div>
-        <Button variant="default" onClick={handleOpenFormNewUser}>
+        <Button
+          variant="default"
+          className="w-full md:w-auto"
+          onClick={handleOpenFormNewUser}
+        >
           Nuevo Usuario
         </Button>
       </div>
@@ -112,91 +116,93 @@ const UsersPage = () => {
         tabs={roleTabs}
         value={roleFilter}
         onChange={setRoleFilter}
-        className="mt-6 mb-2"
+        className="mt-4 md:mt-6 mb-2"
       />
 
       {isLoading && <div>Loading...</div>}
-      <ScrollArea className="h-[calc(80vh-0px)] mt-10">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead></TableHead>
-              <TableHead>Usuario</TableHead>
-              <TableHead>Contacto</TableHead>
-              <TableHead>Rol</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Fecha de Ingreso</TableHead>
-              <TableHead>Fecha de Vencimiento</TableHead>
-              <TableHead>Última Visita</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users
-              ?.filter((user: User) => {
-                if (currentUser && currentUser.role === "staff") {
-                  if (roleFilter === "all") {
-                    return user.role === "user" || user.role === "trainer";
+      <div className="w-full overflow-x-auto mt-6 md:mt-10 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <ScrollArea className="h-[calc(80vh-0px)] min-w-[350px] md:min-w-0">
+          <Table className="min-w-[350px] md:min-w-0 text-xs md:text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="hidden" />
+                <TableHead>Usuario</TableHead>
+                <TableHead className="hidden md:table-cell">Contacto</TableHead>
+                <TableHead className="hidden md:table-cell">Rol</TableHead>
+                <TableHead className="hidden md:table-cell">Estado</TableHead>
+                <TableHead className="hidden md:table-cell">Fecha de Ingreso</TableHead>
+                <TableHead>Fecha de Vencimiento</TableHead>
+                <TableHead className="hidden md:table-cell">Última Visita</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users
+                ?.filter((user: User) => {
+                  if (currentUser && currentUser.role === "staff") {
+                    if (roleFilter === "all") {
+                      return user.role === "user" || user.role === "trainer";
+                    }
+                    return user.role === roleFilter;
                   }
-                  return user.role === roleFilter;
-                }
-                return roleFilter === "all" ? true : user.role === roleFilter;
-              })
-              .map((user: User) => (
-                <UserTableRow
-                  key={user._id}
-                  user={user}
-                  onEdit={() => handleOpenViewUserModal(user._id)}
-                  onDelete={() => handleOpenDialog(user._id)}
-                />
-              ))}
-          </TableBody>
-        </Table>
-        {dialogState.openDialog && (
-          <AlertDialog
-            isOpen={dialogState.openDialog}
-            title="Confirm Deletion"
-            description="Are you sure you want to delete this user?"
-            confirmText="Delete"
-            cancelText="Cancel"
-            onConfirm={async () => {
-              await deleteUser(dialogState.selectedUserId);
-              handleCloseDialog();
-              refetch();
-            }}
-            onCancel={handleCloseDialog}
-          />
-        )}
-        {dialogState.openViewUserModal && (
-          <Modal
-            isOpen={dialogState.openViewUserModal}
-            onClose={handleCloseViewUserModal}
-            title="View User"
-          >
-            <AddUserForm
-              onClose={() => {
-                handleCloseViewUserModal();
+                  return roleFilter === "all" ? true : user.role === roleFilter;
+                })
+                .map((user: User) => (
+                  <UserTableRow
+                    key={user._id}
+                    user={user}
+                    onEdit={() => handleOpenViewUserModal(user._id)}
+                    onDelete={() => handleOpenDialog(user._id)}
+                  />
+                ))}
+            </TableBody>
+          </Table>
+          {dialogState.openDialog && (
+            <AlertDialog
+              isOpen={dialogState.openDialog}
+              title="Confirm Deletion"
+              description="Are you sure you want to delete this user?"
+              confirmText="Delete"
+              cancelText="Cancel"
+              onConfirm={async () => {
+                await deleteUser(dialogState.selectedUserId);
+                handleCloseDialog();
                 refetch();
               }}
-              id={dialogState.selectedUserId}
+              onCancel={handleCloseDialog}
             />
-          </Modal>
-        )}
-        {dialogState.openFormNewUser && (
-          <Modal
-            isOpen={dialogState.openFormNewUser}
-            onClose={handleCloseFormNewUser}
-            title="Add User"
-          >
-            <AddUserForm
-              onClose={() => {
-                handleCloseFormNewUser();
-                refetch();
-              }}
-            />
-          </Modal>
-        )}
-      </ScrollArea>
+          )}
+          {dialogState.openViewUserModal && (
+            <Modal
+              isOpen={dialogState.openViewUserModal}
+              onClose={handleCloseViewUserModal}
+              title="View User"
+            >
+              <AddUserForm
+                onClose={() => {
+                  handleCloseViewUserModal();
+                  refetch();
+                }}
+                id={dialogState.selectedUserId}
+              />
+            </Modal>
+          )}
+          {dialogState.openFormNewUser && (
+            <Modal
+              isOpen={dialogState.openFormNewUser}
+              onClose={handleCloseFormNewUser}
+              title="Add User"
+            >
+              <AddUserForm
+                onClose={() => {
+                  handleCloseFormNewUser();
+                  refetch();
+                }}
+              />
+            </Modal>
+          )}
+        </ScrollArea>
+      </div>
     </main>
   );
 };
@@ -210,13 +216,13 @@ const UserTableRow = ({
   onEdit: () => void;
   onDelete: () => void;
 }) => (
-  <TableRow className="hover:bg-gray-50 ">
-    <TableCell></TableCell>
-    <TableCell className="flex items-center gap-2 pt-4">
+  <TableRow className="hover:bg-gray-50 text-xs md:text-sm h-12 md:h-auto ">
+    <TableCell className="hidden" />
+  <TableCell className="flex items-center gap-2 pt-2 md:pt-4">
       <Avatar size="sm" alt={user.name} src={user.avatar} className="text-xs" />
       {user.name}
     </TableCell>
-    <TableCell>
+    <TableCell className="hidden md:table-cell">
       <div>
         <div className="flex items-center gap-2 text-gray-500">
           <Mail className="w-3 h-3 text-gray-500" /> {user.email}
@@ -226,17 +232,17 @@ const UserTableRow = ({
         </div>
       </div>
     </TableCell>
-    <TableCell>{user.role || "-"}</TableCell>
-    <TableCell>
+    <TableCell className="hidden md:table-cell">{user.role || "-"}</TableCell>
+    <TableCell className="hidden md:table-cell">
       <Badge status={user.status}>{user.status}</Badge>
     </TableCell>
-    <TableCell className="flex-1 text-gray-500 ">
+    <TableCell className="hidden md:table-cell flex-1 text-gray-500 ">
       <div className="flex items-center gap-2">
         <Calendar className="w-3 h-3" /> {formatDate(user.joinDate)}
       </div>
     </TableCell>
     {user.role !== "administrator" ? (
-      <TableCell className="flex-1  text-gray-500 pb-3">
+      <TableCell className="flex-1 text-gray-500 pb-2 md:pb-3">
         <div className="flex items-center gap-2">
           <Calendar className="w-3 h-3" /> {formatDate(user.dueDate)}
         </div>
@@ -246,7 +252,7 @@ const UserTableRow = ({
         <div className="flex items-center gap-2"></div>
       </TableCell>
     )}
-    <TableCell className="flex-1  text-gray-500 pb-3">
+    <TableCell className="hidden md:table-cell flex-1  text-gray-500 pb-3">
       <div className="flex items-center gap-2">
         <Calendar className="w-3 h-3" /> {formatDate(user.lastVisit)}
       </div>

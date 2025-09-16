@@ -10,7 +10,7 @@ async function fetchWithErrorHandling(url: string, options?: RequestInit, defaul
       const errorData = await res.json();
       errorMsg = errorData?.error || errorData?.message || defaultErrorMsg;
     } catch (e) {
-      // 
+      console.log(e)
     }
     throw new Error(errorMsg);
   }
@@ -42,22 +42,33 @@ export const createUser = async (userData: {
   role?: "administrator" | "user" | "staff" | "trainer";
   joinDate: string | null;
   dueDate?: string | null;
-  membership?: string; // id de Payment
   lastVisit?: string | null;
   status?: "activo" | "vencido" | "pendiente";
   avatar?: string | null;
+  paymentMethod?: string;
+  amount?: number;
 }) => {
   // Solo enviar los campos requeridos por el backend
-  const payload = {
+  const payload: Partial<User> = {
     name: userData.name,
     email: userData.email,
     password: userData.password,
     role: userData.role,
     phone: userData.phone || "",
     dni: userData.dni || "",
-    dueDate: userData.dueDate || null,
-    avatar: userData.avatar || null,
+    dueDate: userData.dueDate || undefined,
+    avatar: userData.avatar || undefined,
   };
+  if (
+    userData.role === "user" &&
+    userData.paymentMethod &&
+    ["efectivo", "transferencia", "qr"].includes(userData.paymentMethod)
+  ) {
+    payload.paymentMethod = userData.paymentMethod;
+    if (typeof userData.amount === "number") {
+      payload.amount = userData.amount;
+    }
+  }
   return fetchWithErrorHandling(
     "http://localhost:5050/api/auth/register",
     {
@@ -70,12 +81,21 @@ export const createUser = async (userData: {
 };
 
 export const updateUser = async (id: string, userData: Omit<User, "id">) => {
+  const payload: Partial<User> = { ...userData };
+  if (userData.role !== "user") {
+    delete payload.paymentMethod;
+    delete payload.amount;
+  }
+  // Only send amount if it's a number
+  if (userData.role === "user" && typeof userData.amount === "number") {
+    payload.amount = userData.amount;
+  }
   return fetchWithErrorHandling(
     `/api/users/${id}`,
     {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userData),
+      body: JSON.stringify(payload),
     },
     "Error al actualizar usuario"
   );

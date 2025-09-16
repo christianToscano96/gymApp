@@ -16,7 +16,7 @@ type Status =
   | "permitido"
   | "denegado"
   | "pendiente"
-  | "pagado"
+  | "Pagado"
   | "destructive"
   | string;
 
@@ -28,7 +28,7 @@ export const useGetStatusColor = (status: Status) => {
       case "active":
       case "activo":
       case "permitido":
-      case "pagado":
+      case "Pagado":
         return "bg-green-100 text-green-800 border-green-200";
       case "pending":
       case "pendiente":

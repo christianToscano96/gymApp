@@ -21,6 +21,10 @@ const registerSchema = Joi.object({
   dni: Joi.string().allow(null, ""),
   dueDate: Joi.date().iso().allow(null, ""),
   avatar: Joi.string().allow(null, ""),
+  paymentMethod: Joi.string()
+    .valid("efectivo", "transferencia", "qr")
+    .allow(null, ""),
+  amount: Joi.number().min(0).allow(null, ""),
 });
 
 const loginSchema = Joi.object({
@@ -43,7 +47,6 @@ function formatUser(user) {
     phone: user.phone || null,
     dni: user.dni || null,
     status: user.status,
-    membership: user.membership,
     avatar: user.avatar || null,
     lastVisit: user.lastVisit || null,
     dueDate: user.dueDate || null,
@@ -60,8 +63,18 @@ router.post("/register", async (req, res) => {
   try {
     const { error } = registerSchema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
-    const { name, email, password, role, phone, dni, dueDate, avatar } =
-      req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      phone,
+      dni,
+      dueDate,
+      avatar,
+      paymentMethod,
+      amount,
+    } = req.body;
     const userExists = await User.findOne({ email });
     if (userExists)
       return res.status(400).json({ error: "Email ya registrado" });
@@ -77,23 +90,25 @@ router.post("/register", async (req, res) => {
       joinDate: new Date(),
       dueDate: dueDate || null,
       avatar: avatar || null,
+      paymentMethod: paymentMethod || null,
+      amount: amount || null,
     });
     await user.save();
-      // Solo generar QR si el rol es "user"
-      let qrCode = null;
-      let qrImage = null;
-      if (role === "user") {
-        const qr = await generateQr(user._id.toString());
-        user.qrCode = qr.qrCode;
-        user.qrImage = qr.qrImage;
-        qrCode = qr.qrCode;
-        qrImage = qr.qrImage;
-        await user.save();
-      }
+    // Solo generar QR si el rol es "user"
+    let qrCode = null;
+    let qrImage = null;
+    if (role === "user") {
+      const qr = await generateQr(user._id.toString());
+      user.qrCode = qr.qrCode;
+      user.qrImage = qr.qrImage;
+      qrCode = qr.qrCode;
+      qrImage = qr.qrImage;
+      await user.save();
+    }
 
     // Enviar email de notificación al usuario
     try {
-      await sendUserCreatedEmail(user.email, user.name, user.dni);
+      // await sendUserCreatedEmail(user.email, user.name, user.dni);
     } catch (emailError) {
       console.error("Error enviando email de alta de usuario:", emailError);
     }

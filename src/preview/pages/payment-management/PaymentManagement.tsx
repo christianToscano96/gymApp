@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -34,20 +35,36 @@ import {
   Filter,
   Receipt,
 } from "lucide-react";
-import { payments } from "@/fake/fake-data-gym";
+import { fetchPayments } from "@/api/paymentService";
+import type { Payments } from "@/preview/interfaces/preview.interfaces";
 import { Avatar } from "@/components/ui/avatar";
+import PaymentForm from "./PaymentForm";
+import Modal from "@/components/ui/modal";
 
 const PaymentManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const {
+    data: payments = [],
+    isLoading: loading,
+    error,
+  } = useQuery<Payments[], Error>({
+    queryKey: ["payments"],
+    queryFn: fetchPayments,
+  });
+
+  // Estado para modal de registro de pago
+  const [openModal, setOpenModal] = useState(false);
+
+  // El fetch de pagos ahora lo maneja TanStack Query
 
   const filteredPayments = payments.filter((payment) => {
     const matchesSearch =
-      payment.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.concept.toLowerCase().includes(searchTerm.toLowerCase());
+      payment.user?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.concept?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" ||
-      payment.status.toLowerCase() === statusFilter.toLowerCase();
+      payment.status?.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
@@ -126,10 +143,25 @@ const PaymentManagement = () => {
                 Administra los pagos y transacciones
               </CardDescription>
             </div>
-            <Button className="flex items-center gap-2">
+            <Button
+              className="flex items-center gap-2"
+              onClick={() => setOpenModal(true)}
+            >
               <Plus className="h-4 w-4" />
               Registrar Pago
             </Button>
+            {openModal && (
+              <Modal
+                isOpen={openModal}
+                onClose={() => setOpenModal(false)}
+                title="Registrar Pago"
+              >
+                <PaymentForm
+                  setOpenModal={setOpenModal}
+                  openModal={openModal}
+                />
+              </Modal>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -173,63 +205,81 @@ const PaymentManagement = () => {
 
           {/* Payments Table */}
           <div className="rounded-md ">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuario</TableHead>
-                  <TableHead>Concepto</TableHead>
-                  <TableHead>Monto</TableHead>
-                  <TableHead>Método</TableHead>
-                  <TableHead>Fecha Venc.</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPayments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <Avatar alt={payment?.user} />
-                        <span className="font-medium">{payment.user}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{payment.concept}</TableCell>
-                    <TableCell className="font-medium">
-                      ${payment.amount}
-                    </TableCell>
-                    <TableCell>{payment.method}</TableCell>
-                    <TableCell>
-                      {new Date(payment.dueDate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <Badge status={payment.status}>{payment.status}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="flex items-center gap-2">
-                            <Receipt className="h-4 w-4" />
-                            Ver Recibo
-                          </DropdownMenuItem>
-                          {payment.status !== "Pagado" && (
-                            <DropdownMenuItem className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4" />
-                              Marcar como Pagado
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+            {loading ? (
+              <div className="text-center py-8">Cargando pagos...</div>
+            ) : error ? (
+              <div className="text-center text-red-500 py-8">{error.message}</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuario</TableHead>
+                    <TableHead>Concepto</TableHead>
+                    <TableHead>Monto</TableHead>
+                    <TableHead>Método</TableHead>
+                    <TableHead>Fecha Venc.</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredPayments.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center">
+                        No hay pagos para mostrar
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredPayments.map((payment) => (
+                      <TableRow key={payment.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar alt={payment?.user} />
+                            <span className="font-medium">{payment.user}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{payment.concept}</TableCell>
+                        <TableCell className="font-medium">
+                          ${payment.amount}
+                        </TableCell>
+                        <TableCell>{payment.method}</TableCell>
+                        <TableCell>
+                          {payment.dueDate
+                            ? new Date(payment.dueDate).toLocaleDateString()
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge status={payment.status}>
+                            {payment.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem className="flex items-center gap-2">
+                                <Receipt className="h-4 w-4" />
+                                Ver Recibo
+                              </DropdownMenuItem>
+                              {payment.status !== "Pagado" && (
+                                <DropdownMenuItem className="flex items-center gap-2">
+                                  <CheckCircle className="h-4 w-4" />
+                                  Marcar como Pagado
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </div>
         </CardContent>
       </Card>

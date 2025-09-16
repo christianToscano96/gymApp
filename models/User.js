@@ -21,7 +21,6 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  membership: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
   lastVisit: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
   status: {
@@ -39,6 +38,15 @@ const userSchema = new mongoose.Schema({
   },
   qrImage: {
     type: String,
+    default: null,
+  },
+  paymentMethod: {
+    type: String,
+    enum: ["efectivo", "transferencia", "qr"],
+    default: null,
+  },
+  amount: {
+    type: Number,
     default: null,
   },
 });

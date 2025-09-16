@@ -58,7 +58,6 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
           role: data.user.role,
           phone: data.user.phone,
           status: data.user.status,
-          membership: data.user.membership,
           lastVisit: data.user.lastVisit,
           avatar: data.user.avatar,
           joinDate: data.user.joinDate,

@@ -4,7 +4,6 @@ export interface User {
   phone: string
   email: string
   status: "Activo" | "Vencido" | "Pendiente"
-  membership: "Básico" | "Premium"
   lastVisit: string
   avatar?: string
   joinDate: string,
@@ -13,7 +12,9 @@ export interface User {
   qrImage?: string,
   role: string,
   password: string,
-  dni: string
+  dni: string,
+  paymentMethod?: string,
+  amount?: number
 }
 
 export interface AccessLogs  {

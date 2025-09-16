@@ -1,11 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 const paymentSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  planId: { type: mongoose.Schema.Types.ObjectId, ref: 'Plan', required: true },
-  paymentDate: { type: Date, required: true },
-  expirationDate: { type: Date, required: true },
+  user: { type: String, required: true }, // nombre del usuario
+  date: { type: Date, required: true }, // fecha de pago
+  dueDate: { type: Date, required: true }, // fecha de vencimiento
   amount: { type: Number, required: true },
   status: { type: String, required: true },
-  paymentMethod: { type: String, required: true },
+  method: { type: String, required: true },
+  concept: { type: String, required: false },
 });
-export default mongoose.model('Payment', paymentSchema);
+export default mongoose.model("Payment", paymentSchema);
