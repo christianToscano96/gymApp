@@ -41,6 +41,7 @@ const UsersPage = () => {
     selectedUserId: "",
   });
   const [roleFilter, setRoleFilter] = useState<string>("user");
+  const [searchTerm, setSearchTerm] = useState("");
   const { data: currentUser } = useCurrentUser();
   const roleTabs =
     currentUser?.role === "staff"
@@ -101,7 +102,10 @@ const UsersPage = () => {
       <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center ">
         <h1 className="text-xl md:text-2xl font-bold">Usuario</h1>
         <div className="w-full md:w-1/3">
-          <Search />
+          <Search
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
         </div>
         <Button
           variant="default"
@@ -120,7 +124,10 @@ const UsersPage = () => {
       />
 
       {isLoading && <div>Loading...</div>}
-      <div className="w-full overflow-x-auto mt-6 md:mt-10 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div
+        className="w-full overflow-x-auto mt-6 md:mt-10 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
         <ScrollArea className="h-[calc(80vh-0px)] min-w-[350px] md:min-w-0">
           <Table className="min-w-[350px] md:min-w-0 text-xs md:text-sm">
             <TableHeader>
@@ -130,15 +137,20 @@ const UsersPage = () => {
                 <TableHead className="hidden md:table-cell">Contacto</TableHead>
                 <TableHead className="hidden md:table-cell">Rol</TableHead>
                 <TableHead className="hidden md:table-cell">Estado</TableHead>
-                <TableHead className="hidden md:table-cell">Fecha de Ingreso</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Fecha de Ingreso
+                </TableHead>
                 <TableHead>Fecha de Vencimiento</TableHead>
-                <TableHead className="hidden md:table-cell">Última Visita</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Última Visita
+                </TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users
                 ?.filter((user: User) => {
+                  // Filtrado por rol
                   if (currentUser && currentUser.role === "staff") {
                     if (roleFilter === "all") {
                       return user.role === "user" || user.role === "trainer";
@@ -146,6 +158,16 @@ const UsersPage = () => {
                     return user.role === roleFilter;
                   }
                   return roleFilter === "all" ? true : user.role === roleFilter;
+                })
+                .filter((user: User) => {
+                  // Filtrado por búsqueda
+                  if (!searchTerm.trim()) return true;
+                  const term = searchTerm.toLowerCase();
+                  return (
+                    user.name?.toLowerCase().includes(term) ||
+                    user.email?.toLowerCase().includes(term) ||
+                    user.phone?.toLowerCase().includes(term)
+                  );
                 })
                 .map((user: User) => (
                   <UserTableRow
@@ -218,7 +240,7 @@ const UserTableRow = ({
 }) => (
   <TableRow className="hover:bg-gray-50 text-xs md:text-sm h-12 md:h-auto ">
     <TableCell className="hidden" />
-  <TableCell className="flex items-center gap-2 pt-2 md:pt-4">
+    <TableCell className="flex items-center gap-2 pt-2 md:pt-4">
       <Avatar size="sm" alt={user.name} src={user.avatar} className="text-xs" />
       {user.name}
     </TableCell>
@@ -242,11 +264,27 @@ const UserTableRow = ({
       </div>
     </TableCell>
     {user.role !== "administrator" ? (
-      <TableCell className="flex-1 text-gray-500 pb-2 md:pb-3">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-3 h-3" /> {formatDate(user.dueDate)}
-        </div>
-      </TableCell>
+      (() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let isExpired = false;
+        if (user.dueDate) {
+          const due = new Date(user.dueDate);
+          due.setHours(0, 0, 0, 0);
+          isExpired = due < today;
+        }
+        return (
+          <TableCell
+            className={`flex-1 pb-2 md:pb-3 ${
+              isExpired ? "text-red-500 font-bold" : "text-gray-500"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Calendar className="w-3 h-3" /> {formatDate(user.dueDate)}
+            </div>
+          </TableCell>
+        );
+      })()
     ) : (
       <TableCell className="flex-1  text-gray-500 pb-3">
         <div className="flex items-center gap-2"></div>

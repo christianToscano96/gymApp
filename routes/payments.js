@@ -9,11 +9,14 @@ router.post('/', async (req, res) => {
     const payment = new Payment(req.body);
     await payment.save();
 
-    // Actualizar usuario con nueva fecha de vencimiento
+    // Actualizar usuario con nueva fecha de vencimiento y tipo de vencimiento
     if (req.body.userId && req.body.expirationDate) {
       await User.findByIdAndUpdate(
         req.body.userId,
-        { dueDate: req.body.expirationDate },
+        {
+          dueDate: req.body.expirationDate,
+          ...(req.body.expirationType && { expirationType: req.body.expirationType })
+        },
         { new: true }
       );
     }

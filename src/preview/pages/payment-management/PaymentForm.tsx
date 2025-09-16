@@ -8,14 +8,15 @@ import { fetchUsers } from "@/api/userService";
 import type { User } from "@/preview/interfaces/preview.interfaces";
 import type { Payments } from "@/preview/interfaces/preview.interfaces";
 import { createPaymentWithUser } from "@/api/paymentService";
-
+import { updateUser } from "@/api/userService";
 
 interface PaymentFormProps {
   openModal: boolean;
   setOpenModal: (open: boolean) => void;
+  userId?: string | null;
 }
 
-const PaymentForm = ({ openModal, setOpenModal }: PaymentFormProps) => {
+const PaymentForm = ({ openModal, setOpenModal, userId }: PaymentFormProps) => {
   const [amount, setAmount] = useState(30);
   const { user: selectedUserStore } = useUserStore();
   const [selectedUser, setSelectedUser] = useState(selectedUserStore);
@@ -29,7 +30,7 @@ const PaymentForm = ({ openModal, setOpenModal }: PaymentFormProps) => {
     { label: "15 días", value: "15" },
     { label: "Mensual", value: "monthly" },
   ];
-  const [expirationType, setExpirationType] = useState("");
+  const [expirationType, setExpirationType] = useState<"1" | "15" | "monthly" | "">("");
 
   function calculateExpiration(startDate: string, type: string) {
     if (!startDate) return "";
@@ -50,29 +51,44 @@ const PaymentForm = ({ openModal, setOpenModal }: PaymentFormProps) => {
     return date.toISOString().slice(0, 10);
   }
 
-  // Concepto dinámico según vencimiento
+  // Concepto dinámico según vencimiento y tipo
   const getPaidMonth = () => {
     if (!dueDate) return "";
     const date = new Date(dueDate);
-    const nextDate = new Date(date);
-    if (expirationType === "1") nextDate.setDate(date.getDate() + 1);
-    else if (expirationType === "15") nextDate.setDate(date.getDate() + 15);
-    else nextDate.setMonth(date.getMonth() + 1);
-    return nextDate.toLocaleString("es-ES", { month: "long", year: "numeric" });
+    return date.toLocaleString("es-ES", { month: "long", year: "numeric" });
   };
-  const concept = `Mensualidad - ${getPaidMonth()}`;
+
+  // Guardar en concept solo el valor elegido para la BD, pero mostrar el label correcto en el input
+  const concept = expirationType === "" ? "" : expirationType;
+  const conceptLabel =
+    expirationType === "1"
+      ? "Se pagó por 1 día"
+      : expirationType === "15"
+      ? "Se pagó 15 días"
+      : expirationType === "monthly"
+      ? `Mensualidad de ${getPaidMonth()}`
+      : "";
 
   useEffect(() => {
     if (openModal) {
-      fetchUsers().then(setUsers);
+      fetchUsers().then((users: User[]) => {
+        setUsers(users);
+        // Si viene userId, selecciona el usuario automáticamente
+        if (userId) {
+          const found = users.find((u: User) => u._id === userId);
+          if (found) setSelectedUser(found);
+        }
+      });
     }
-  }, [openModal]);
+  }, [openModal, userId]);
 
   useEffect(() => {
     if (selectedUser) {
       setUserDueDate(selectedUser.dueDate);
       setDueDate(""); // Limpiar nueva fecha de vencimiento
       setExpirationType("");
+      setAmount(30); // Reset amount or set default
+      setMethod("Efectivo");
     }
   }, [selectedUser]);
 
@@ -105,12 +121,22 @@ const PaymentForm = ({ openModal, setOpenModal }: PaymentFormProps) => {
         date: new Date().toISOString().slice(0, 10),
         userId: selectedUser._id,
         expirationDate: getNextDueDate(),
+        expirationType,
       });
+      // 2. Actualizar dueDate y tipo de vencimiento del usuario en la BD
+      if (getNextDueDate()) {
+        await updateUser(selectedUser._id, {
+          ...selectedUser,
+          dueDate: getNextDueDate(),
+          expirationType,
+        });
+      }
     },
     onSuccess: () => {
-      toast.success("Pago registrado correctamente");
-      queryClient.invalidateQueries({ queryKey: ["payments"] });
-      setOpenModal(false);
+  toast.success("Pago registrado y usuario actualizado");
+  queryClient.invalidateQueries({ queryKey: ["payments"] });
+  queryClient.invalidateQueries({ queryKey: ["users"] });
+  setOpenModal(false);
     },
     onError: (err: unknown) => {
       if (err instanceof Error) {
@@ -128,7 +154,7 @@ const PaymentForm = ({ openModal, setOpenModal }: PaymentFormProps) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-    mutation.mutate();
+  mutation.mutate();
   };
   return (
     <div className="relative w-full">
@@ -207,7 +233,7 @@ const PaymentForm = ({ openModal, setOpenModal }: PaymentFormProps) => {
         </div>
         <div className="w-full">
           <label className="block text-sm font-medium mb-1">Concepto</label>
-          <Input value={concept ?? ""} disabled className="w-full" />
+          <Input value={conceptLabel ?? ""} disabled className="w-full" />
           <p className="text-xs text-muted-foreground mt-1">
             Este es el mes que se está pagando
           </p>
@@ -217,7 +243,7 @@ const PaymentForm = ({ openModal, setOpenModal }: PaymentFormProps) => {
             Fecha de vencimiento actual
           </label>
           <Input
-            value={userDueDate ? new Date(userDueDate).toLocaleDateString() : ""}
+            value={userDueDate ? userDueDate.slice(0, 10) : ""}
             disabled
             className="w-full"
           />
@@ -230,7 +256,6 @@ const PaymentForm = ({ openModal, setOpenModal }: PaymentFormProps) => {
         </div>
       </form>
       <div className="absolute bottom-0 left-0 w-full bg-white border-t flex flex-col items-center gap-2 p-4 z-10 mt-35">
-        {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
         {/* El toast de éxito ahora se maneja con sonner */}
         <div className="flex justify-center gap-2 w-full">
           <Button
