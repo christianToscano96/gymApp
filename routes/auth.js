@@ -21,7 +21,10 @@ const registerSchema = Joi.object({
   dni: Joi.string().allow(null, ""),
   dueDate: Joi.date().iso().allow(null, ""),
   avatar: Joi.string().allow(null, ""),
-  paymentMethod: Joi.string().valid("efectivo", "transferencia", "qr").allow(null, ""),
+  paymentMethod: Joi.string()
+    .valid("efectivo", "transferencia", "qr")
+    .allow(null, ""),
+  amount: Joi.number().min(0).allow(null, ""),
 });
 
 const loginSchema = Joi.object({
@@ -60,8 +63,18 @@ router.post("/register", async (req, res) => {
   try {
     const { error } = registerSchema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
-    const { name, email, password, role, phone, dni, dueDate, avatar, paymentMethod } =
-      req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      phone,
+      dni,
+      dueDate,
+      avatar,
+      paymentMethod,
+      amount,
+    } = req.body;
     const userExists = await User.findOne({ email });
     if (userExists)
       return res.status(400).json({ error: "Email ya registrado" });
@@ -78,6 +91,7 @@ router.post("/register", async (req, res) => {
       dueDate: dueDate || null,
       avatar: avatar || null,
       paymentMethod: paymentMethod || null,
+      amount: amount || null,
     });
     await user.save();
     // Solo generar QR si el rol es "user"

@@ -46,6 +46,7 @@ export const createUser = async (userData: {
   status?: "activo" | "vencido" | "pendiente";
   avatar?: string | null;
   paymentMethod?: string;
+  amount?: number;
 }) => {
   // Solo enviar los campos requeridos por el backend
   const payload: Partial<User> = {
@@ -64,6 +65,9 @@ export const createUser = async (userData: {
     ["efectivo", "transferencia", "qr"].includes(userData.paymentMethod)
   ) {
     payload.paymentMethod = userData.paymentMethod;
+    if (typeof userData.amount === "number") {
+      payload.amount = userData.amount;
+    }
   }
   return fetchWithErrorHandling(
     "http://localhost:5050/api/auth/register",
@@ -80,6 +84,11 @@ export const updateUser = async (id: string, userData: Omit<User, "id">) => {
   const payload: Partial<User> = { ...userData };
   if (userData.role !== "user") {
     delete payload.paymentMethod;
+    delete payload.amount;
+  }
+  // Only send amount if it's a number
+  if (userData.role === "user" && typeof userData.amount === "number") {
+    payload.amount = userData.amount;
   }
   return fetchWithErrorHandling(
     `/api/users/${id}`,

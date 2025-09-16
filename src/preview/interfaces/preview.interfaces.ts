@@ -13,7 +13,8 @@ export interface User {
   role: string,
   password: string,
   dni: string,
-  paymentMethod?: string
+  paymentMethod?: string,
+  amount?: number
 }
 
 export interface AccessLogs  {

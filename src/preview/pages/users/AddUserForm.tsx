@@ -34,6 +34,7 @@ const initialState: Omit<User, "_id"> = {
   password: "",
   dni: "",
   paymentMethod: "",
+  amount: 0,
 };
 const PAYMENT_METHODS = [
   { label: "Transferencia", value: "transferencia" },
@@ -71,8 +72,28 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   });
 
   const [form, setForm] = useState<Omit<User, "_id">>(initialState);
-  const { avatar, setAvatar, handleAvatarChange } = useAvatarResize();
+  // Actualiza amount automáticamente según expirationType, pero permite edición manual
   const [expirationType, setExpirationType] = useState("");
+  React.useEffect(() => {
+    if (!expirationType) return;
+    let defaultAmount = 0;
+    if (expirationType === "1") defaultAmount = 1;
+    else if (expirationType === "15") defaultAmount = 15;
+    else if (expirationType === "monthly") defaultAmount = 30;
+    setForm((prev) => {
+      if (
+        !prev.amount ||
+        prev.amount === 0 ||
+        prev.amount === 1 ||
+        prev.amount === 15 ||
+        prev.amount === 30
+      ) {
+        return { ...prev, amount: defaultAmount };
+      }
+      return prev;
+    });
+  }, [expirationType]);
+  const { avatar, setAvatar, handleAvatarChange } = useAvatarResize();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   function getRoleOptions(userRole?: string) {
@@ -107,6 +128,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
         joinDate,
         dueDate,
         paymentMethod: user.paymentMethod || "",
+        amount: user.amount || "",
       });
       setAvatar(user.avatar || "");
 
@@ -189,6 +211,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
         _id: id,
         joinDate: normalizedJoinDate,
         dueDate: normalizedDueDate,
+        amount: typeof form.amount === "number" ? form.amount : 0,
       });
       toast.success("Usuario actualizado correctamente");
     } catch (error) {
@@ -291,6 +314,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
             joinDate: normalizedJoinDate,
             dueDate,
             paymentMethod: form.paymentMethod || "",
+            amount: typeof form.amount === "number" ? form.amount : 0,
           };
         } else {
           userPayload = {
@@ -557,6 +581,26 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
               {errors.expirationType && (
                 <div className="text-red-500 text-xs mt-1">
                   {errors.expirationType}
+                </div>
+              )}
+              {/* Show amount when expirationType is selected */}
+              {expirationType && (
+                <div className="mt-2">
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">
+                    Monto
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={form.amount}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        amount: Number(e.target.value),
+                      }))
+                    }
+                    className="w-32 text-lg font-semibold"
+                  />
                 </div>
               )}
             </div>
