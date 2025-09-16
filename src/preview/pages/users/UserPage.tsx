@@ -40,7 +40,7 @@ const UsersPage = () => {
     openFormNewUser: false,
     selectedUserId: "",
   });
-  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("user");
   const { data: currentUser } = useCurrentUser();
   const roleTabs =
     currentUser?.role === "staff"

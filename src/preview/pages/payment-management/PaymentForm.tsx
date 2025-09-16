@@ -7,8 +7,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchUsers } from "@/api/userService";
 import type { User } from "@/preview/interfaces/preview.interfaces";
 import type { Payments } from "@/preview/interfaces/preview.interfaces";
-import { createPayment } from "@/api/paymentService";
-import { updateUser } from "@/api/userService";
+import { createPaymentWithUser } from "@/api/paymentService";
+
 
 interface PaymentFormProps {
   openModal: boolean;
@@ -95,7 +95,7 @@ const PaymentForm = ({ openModal, setOpenModal }: PaymentFormProps) => {
   const mutation = useMutation({
     mutationFn: async () => {
       if (!selectedUser) throw new Error("No hay usuario seleccionado");
-      await createPayment({
+      await createPaymentWithUser({
         user: selectedUser.name,
         amount,
         status: "Pagado",
@@ -103,10 +103,8 @@ const PaymentForm = ({ openModal, setOpenModal }: PaymentFormProps) => {
         method,
         dueDate: getNextDueDate(),
         date: new Date().toISOString().slice(0, 10),
-      });
-      await updateUser(selectedUser._id, {
-        ...selectedUser,
-        dueDate: getNextDueDate(),
+        userId: selectedUser._id,
+        expirationDate: getNextDueDate(),
       });
     },
     onSuccess: () => {

@@ -21,6 +21,7 @@ const registerSchema = Joi.object({
   dni: Joi.string().allow(null, ""),
   dueDate: Joi.date().iso().allow(null, ""),
   avatar: Joi.string().allow(null, ""),
+  paymentMethod: Joi.string().valid("efectivo", "transferencia", "qr").allow(null, ""),
 });
 
 const loginSchema = Joi.object({
@@ -43,7 +44,6 @@ function formatUser(user) {
     phone: user.phone || null,
     dni: user.dni || null,
     status: user.status,
-    membership: user.membership,
     avatar: user.avatar || null,
     lastVisit: user.lastVisit || null,
     dueDate: user.dueDate || null,
@@ -60,7 +60,7 @@ router.post("/register", async (req, res) => {
   try {
     const { error } = registerSchema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
-    const { name, email, password, role, phone, dni, dueDate, avatar } =
+    const { name, email, password, role, phone, dni, dueDate, avatar, paymentMethod } =
       req.body;
     const userExists = await User.findOne({ email });
     if (userExists)
@@ -77,6 +77,7 @@ router.post("/register", async (req, res) => {
       joinDate: new Date(),
       dueDate: dueDate || null,
       avatar: avatar || null,
+      paymentMethod: paymentMethod || null,
     });
     await user.save();
     // Solo generar QR si el rol es "user"
@@ -93,7 +94,7 @@ router.post("/register", async (req, res) => {
 
     // Enviar email de notificación al usuario
     try {
-      await sendUserCreatedEmail(user.email, user.name, user.dni);
+      // await sendUserCreatedEmail(user.email, user.name, user.dni);
     } catch (emailError) {
       console.error("Error enviando email de alta de usuario:", emailError);
     }

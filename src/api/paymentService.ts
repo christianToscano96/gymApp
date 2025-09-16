@@ -14,7 +14,17 @@ async function fetchWithErrorHandling(url: string, options?: RequestInit, defaul
   return res.json();
 }
 
+
 export const createPayment = async (payment: Omit<Payments, "id">) => {
+  return fetchWithErrorHandling("/api/payments", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payment),
+  }, "Error al registrar pago");
+};
+
+// Permitir campos extra para el caso de userId y expirationDate
+export const createPaymentWithUser = async (payment: Omit<Payments, "id"> & { userId: string, expirationDate: string }) => {
   return fetchWithErrorHandling("/api/payments", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -73,7 +73,6 @@ app.put("/api/users/:id", async (req, res) => {
     user.phone = req.body.phone ?? user.phone;
     user.email = req.body.email ?? user.email;
     user.status = req.body.status ?? user.status;
-    user.membership = req.body.membership ?? user.membership;
     user.lastVisit = req.body.lastVisit ?? user.lastVisit;
     user.avatar = req.body.avatar ?? user.avatar;
     user.joinDate = req.body.joinDate ?? user.joinDate;

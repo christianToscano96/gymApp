@@ -3,6 +3,7 @@ import { useCurrentUser } from "@/hook/useCurrentUser";
 import { useAvatarResize } from "@/hook/useAvatarResize";
 import type { User } from "@/preview/interfaces/preview.interfaces";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarPicker } from "@/components/ui/calendar-picker";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,6 @@ const initialState: Omit<User, "_id"> = {
   phone: "",
   email: "",
   status: "Activo",
-  membership: "Básico",
   lastVisit: "",
   avatar: "",
   joinDate: "",
@@ -33,10 +33,32 @@ const initialState: Omit<User, "_id"> = {
   role: "user",
   password: "",
   dni: "",
+  paymentMethod: "",
 };
+const PAYMENT_METHODS = [
+  { label: "Transferencia", value: "transferencia" },
+  { label: "Efectivo", value: "efectivo" },
+  { label: "Pago QR", value: "qr" },
+];
+const STATUS_OPTIONS = [
+  { label: "Activo", value: "Activo" },
+  { label: "Pendiente", value: "Pendiente" },
+  { label: "Vencido", value: "Vencido" },
+];
+
+const ALL_ROLE_OPTIONS = [
+  { label: "Administrador", value: "administrator" },
+  { label: "Usuario", value: "user" },
+  { label: "Personal", value: "staff" },
+  { label: "Entrenador", value: "trainer" },
+];
+const EXPIRATION_OPTIONS = [
+  { label: "1 día", value: "1" },
+  { label: "15 días", value: "15" },
+  { label: "Mensual", value: "monthly" },
+];
 
 export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
-  // Obtener usuario actual
   const { data: currentUser } = useCurrentUser();
   const {
     data: user,
@@ -53,19 +75,6 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   const [expirationType, setExpirationType] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const STATUS_OPTIONS = [
-    { label: "Activo", value: "Activo" },
-    { label: "Pendiente", value: "Pendiente" },
-    { label: "Vencido", value: "Vencido" },
-  ];
-
-  const ALL_ROLE_OPTIONS = [
-    { label: "Administrador", value: "administrator" },
-    { label: "Usuario", value: "user" },
-    { label: "Personal", value: "staff" },
-    { label: "Entrenador", value: "trainer" },
-  ];
-
   function getRoleOptions(userRole?: string) {
     if (userRole === "staff") {
       return ALL_ROLE_OPTIONS.filter(
@@ -76,40 +85,47 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   }
 
   const ROLE_OPTIONS = getRoleOptions(currentUser?.role);
-  const EXPIRATION_OPTIONS = [
-    { label: "1 día", value: "1" },
-    { label: "15 días", value: "15" },
-    { label: "Mensual", value: "monthly" },
-  ];
 
   React.useEffect(() => {
+    function getLocalDate() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
     if (id && user) {
+      const joinDate = user.joinDate
+        ? new Date(user.joinDate).toISOString().slice(0, 10)
+        : "";
+      const dueDate = user.dueDate
+        ? new Date(user.dueDate).toISOString().slice(0, 10)
+        : "";
       setForm({
         ...user,
-        joinDate: user.joinDate
-          ? new Date(user.joinDate).toISOString().slice(0, 10)
-          : "",
-        dueDate: user.dueDate
-          ? new Date(user.dueDate).toISOString().slice(0, 10)
-          : "",
+        joinDate,
+        dueDate,
+        paymentMethod: user.paymentMethod || "",
       });
       setAvatar(user.avatar || "");
-      if (user.joinDate && user.dueDate) {
-        const join = new Date(user.joinDate);
-        const due = new Date(user.dueDate);
+
+      // Calcular tipo de expiración si hay fechas
+      if (joinDate && dueDate) {
+        const join = new Date(joinDate);
+        const due = new Date(dueDate);
         const diffDays = Math.round(
           (due.getTime() - join.getTime()) / (1000 * 60 * 60 * 24)
         );
-        if (Math.abs(diffDays - 15) < 2) {
-          setExpirationType("15");
-        } else if (Math.abs(diffDays - 1) < 2) {
-          setExpirationType("1");
-        } else {
-          setExpirationType("monthly");
-        }
+        if (Math.abs(diffDays - 15) < 2) setExpirationType("15");
+        else if (Math.abs(diffDays - 1) < 2) setExpirationType("1");
+        else setExpirationType("monthly");
       }
     } else if (!id) {
-      setForm(initialState);
+      setForm({
+        ...initialState,
+        joinDate: getLocalDate(),
+      });
       setAvatar("");
       setExpirationType("");
     }
@@ -190,6 +206,8 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
     if (!form.dni) newErrors.dni = "El DNI es requerido.";
     if (!form.role) newErrors.role = "El rol es requerido.";
     if (!form.status) newErrors.status = "El estado es requerido.";
+    if (form.role === "user" && !form.paymentMethod)
+      newErrors.paymentMethod = "El método de pago es requerido.";
     if (
       !form.joinDate &&
       !["administrator", "staff", "trainer"].includes(form.role)
@@ -200,11 +218,14 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
       !["administrator", "staff", "trainer"].includes(form.role)
     )
       newErrors.expirationType = "El tipo de vencimiento es requerido.";
-    if (
-      form.joinDate &&
-      new Date(form.joinDate) < new Date(new Date().toISOString().slice(0, 10))
-    ) {
-      newErrors.joinDate = "La fecha de inicio no puede ser anterior a hoy.";
+    if (form.joinDate) {
+      const [y, m, d] = form.joinDate.split("-").map(Number);
+      const join = new Date(y, m - 1, d);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      if (join < now) {
+        newErrors.joinDate = "La fecha de inicio no puede ser anterior a hoy.";
+      }
     }
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) {
@@ -245,11 +266,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
             : form.status === "Pendiente"
             ? "pendiente"
             : "activo";
-        const normalizedMembership =
-          typeof form.membership === "string" &&
-          !["Básico", "Premium"].includes(form.membership)
-            ? form.membership
-            : "";
+
         let safePassword = "gymapp123";
         if (form.dni && form.dni.length >= 6) {
           safePassword = form.dni.slice(-6);
@@ -264,12 +281,16 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           userPayload = {
             ...form,
             avatar,
-            role: normalizedRole as "administrator" | "user" | "staff" | "trainer",
+            role: normalizedRole as
+              | "administrator"
+              | "user"
+              | "staff"
+              | "trainer",
             status: normalizedStatus as "activo" | "vencido" | "pendiente",
-            membership: normalizedMembership,
             password: safePassword,
             joinDate: normalizedJoinDate,
             dueDate,
+            paymentMethod: form.paymentMethod || "",
           };
         } else {
           userPayload = {
@@ -278,10 +299,13 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
             password: safePassword,
             phone: form.phone,
             dni: form.dni,
-            role: normalizedRole as "administrator" | "user" | "staff" | "trainer",
+            role: normalizedRole as
+              | "administrator"
+              | "user"
+              | "staff"
+              | "trainer",
             joinDate: normalizedJoinDate,
             dueDate,
-            membership: form.membership,
             lastVisit: form.lastVisit,
             status: normalizedStatus as "activo" | "vencido" | "pendiente",
             avatar,
@@ -373,8 +397,8 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
       </div>
 
       {id === undefined || id === null ? (
-        <>
-          <div className="mt-1">
+        <div className="flex gap-4">
+          <div className="flex-1 mt-1">
             <Label className="block text-sm font-medium text-gray-700">
               Rol
             </Label>
@@ -394,7 +418,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
               <div className="text-red-500 text-xs mt-1">{errors.role}</div>
             )}
           </div>
-          <div className="mt-1">
+          <div className="flex-1 mt-1">
             <Label className="block text-sm font-medium text-gray-700">
               Estado
             </Label>
@@ -414,7 +438,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
               <div className="text-red-500 text-xs mt-1">{errors.status}</div>
             )}
           </div>
-        </>
+        </div>
       ) : (
         <div className="flex items-center justify-start gap-5 mt-5">
           <div>
@@ -504,24 +528,32 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           </div>
           {form.joinDate && (
             <div>
-              <Label className="block text-sm font-medium text-gray-700">
+              <Label className="block text-sm font-medium text-gray-700 mb-1">
                 Tipo de Vencimiento
               </Label>
-              <Select
-                options={EXPIRATION_OPTIONS}
-                value={expirationType}
-                onChange={(value) => {
-                  setExpirationType(value);
-                  setForm((prev) => {
-                    const dueDate = prev.joinDate
-                      ? calculateExpiration(prev.joinDate, value)
-                      : "";
-                    return { ...prev, dueDate };
-                  });
-                }}
-                placeholder="Selecciona una opción"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              />
+              <div className="flex gap-4">
+                {EXPIRATION_OPTIONS.map((option) => (
+                  <label
+                    key={option.value}
+                    className="flex items-center gap-1 cursor-pointer select-none"
+                  >
+                    <Checkbox
+                      checked={expirationType === option.value}
+                      onCheckedChange={() => {
+                        setExpirationType(option.value);
+                        setForm((prev) => {
+                          const dueDate = prev.joinDate
+                            ? calculateExpiration(prev.joinDate, option.value)
+                            : "";
+                          return { ...prev, dueDate };
+                        });
+                      }}
+                      id={`expiration-type-${option.value}`}
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
               {errors.expirationType && (
                 <div className="text-red-500 text-xs mt-1">
                   {errors.expirationType}
@@ -539,6 +571,38 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
             </div>
           )}
         </>
+      )}
+      {form.role === "user" && (
+        <div>
+          <Label className="block text-sm font-medium text-gray-700 mb-1">
+            Método de pago
+          </Label>
+          <div className="flex gap-4">
+            {PAYMENT_METHODS.map((method) => (
+              <label
+                key={method.value}
+                className="flex items-center gap-1 cursor-pointer select-none"
+              >
+                <Checkbox
+                  checked={form.paymentMethod === method.value}
+                  onCheckedChange={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      paymentMethod: method.value,
+                    }))
+                  }
+                  id={`payment-method-${method.value}`}
+                />
+                <span>{method.label}</span>
+                {errors.paymentMethod && (
+                  <div className="text-red-500 text-xs mt-1">
+                    {errors.paymentMethod}
+                  </div>
+                )}
+              </label>
+            ))}
+          </div>
+        </div>
       )}
       <Button type="submit" className="w-full py-2 px-4 transition mt-4">
         {id ? "Actualizar usuario" : "Crear usuario"}
