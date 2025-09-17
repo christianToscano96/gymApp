@@ -104,7 +104,7 @@ const UsersPage = () => {
         <div className="w-full md:w-1/3">
           <Search
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <Button
@@ -150,7 +150,6 @@ const UsersPage = () => {
             <TableBody>
               {users
                 ?.filter((user: User) => {
-                  // Filtrado por rol
                   if (currentUser && currentUser.role === "staff") {
                     if (roleFilter === "all") {
                       return user.role === "user" || user.role === "trainer";

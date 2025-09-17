@@ -1,10 +1,10 @@
-import express from 'express';
-import Payment from '../models/Payment.js';
-import User from '../models/User.js';
+import express from "express";
+import Payment from "../models/Payment.js";
+import User from "../models/User.js";
 const router = express.Router();
 
 // Crear pago
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const payment = new Payment(req.body);
     await payment.save();
@@ -15,7 +15,9 @@ router.post('/', async (req, res) => {
         req.body.userId,
         {
           dueDate: req.body.expirationDate,
-          ...(req.body.expirationType && { expirationType: req.body.expirationType })
+          ...(req.body.expirationType && {
+            expirationType: req.body.expirationType,
+          }),
         },
         { new: true }
       );
@@ -28,7 +30,7 @@ router.post('/', async (req, res) => {
 });
 
 // Listar pagos
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const payments = await Payment.find();
     res.json(payments);
