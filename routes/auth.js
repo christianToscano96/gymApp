@@ -108,7 +108,7 @@ router.post("/register", async (req, res) => {
 
     // Enviar email de notificación al usuario
     try {
-      // await sendUserCreatedEmail(user.email, user.name, user.dni);
+      await sendUserCreatedEmail(user.email, user.name, user.dni);
     } catch (emailError) {
       console.error("Error enviando email de alta de usuario:", emailError);
     }

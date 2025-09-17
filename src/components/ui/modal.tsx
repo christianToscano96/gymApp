@@ -13,7 +13,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="relative w-full h-full rounded-none max-w-full min-w-0 mx-0 sm:mx-4 sm:rounded-2xl sm:w-[40vw] sm:h-[90vh] sm:max-w-[900px] sm:min-w-[300px] bg-white shadow-lg flex flex-col overflow-x-hidden">
+      <div className="relative w-full h-full rounded-none max-w-full min-w-0 mx-0 sm:mx-4 sm:rounded-2xl sm:w-[40vw] sm:h-[95vh] sm:max-w-[900px] sm:min-w-[300px] bg-white shadow-lg flex flex-col overflow-x-hidden">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors text-3xl font-bold focus:outline-none z-10"

@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  expirationType: {
+    type: String,
+    enum: ["1", "15", "monthly"],
+    default: null,
+  },
   joinDate: {
     type: Date,
     default: Date.now,

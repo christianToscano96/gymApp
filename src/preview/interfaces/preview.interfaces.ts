@@ -8,6 +8,7 @@ export interface User {
   avatar?: string
   joinDate: string,
   dueDate: string,
+  expirationType?: "1" | "15" | "monthly",
   qrCode: string,
   qrImage?: string,
   role: string,
@@ -36,6 +37,7 @@ export interface Payments {
   method: "Tarjeta" | "Efectivo" | "Transferencia",
   concept: string,
   dueDate: string,
+  expirationType?: "1" | "15" | "monthly",
 }
 export interface Staff {
   id: string

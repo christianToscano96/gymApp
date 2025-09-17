@@ -7,5 +7,6 @@ const paymentSchema = new mongoose.Schema({
   status: { type: String, required: true },
   method: { type: String, required: true },
   concept: { type: String, required: false },
+  expirationType: { type: String, required: false },
 });
 export default mongoose.model("Payment", paymentSchema);
