@@ -43,14 +43,8 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
           setIsPending(false);
           return;
         }
-        setUser({
-          id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
-          token: data.token,
-          role: data.user.role,
-        });
-        queryClient.setQueryData(["user"], {
+        const fullUser = {
+          _id: data.user._id || data.user.id,
           id: data.user.id,
           name: data.user.name,
           email: data.user.email,
@@ -64,8 +58,14 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
           dueDate: data.user.dueDate,
           qrCode: data.user.qrCode,
           qrImage: data.user.qrImage || data.qrImage,
-          password: undefined,
-        });
+          password: data.user.password || "",
+          dni: data.user.dni || "",
+          expirationType: data.user.expirationType,
+          paymentMethod: data.user.paymentMethod,
+          amount: data.user.amount,
+        };
+        setUser(fullUser);
+        queryClient.setQueryData(["user"], fullUser);
         localStorage.setItem("userId", data.user.id);
         setSuccessMsg("Inicio de sesión exitoso");
         setShowSuccess(true);

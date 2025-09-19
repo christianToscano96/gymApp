@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle, LogOut, UserRoundCog, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useUserStore } from "@/hook/useUserStore";
 import { formatDateES } from "@/lib/utils";
-import type { User } from "../preview/interfaces/preview.interfaces";
+
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,10 +17,11 @@ export default function UserPreviewPage() {
   const [viewProfile, setViewProfile] = useState(false);
 
   const queryClient = useQueryClient();
-  const user = queryClient.getQueryData(["user"]) as User | undefined;
+  const user = useUserStore((state) => state.user);
   const logout = () => {
     queryClient.removeQueries({ queryKey: ["user"] });
     localStorage.clear();
+    useUserStore.getState().logout();
     window.location.href = "/auth";
   };
 
@@ -44,12 +46,14 @@ export default function UserPreviewPage() {
     return daysUntilExpiry <= 30;
   };
 
+  useEffect(() => {
+    if (!user) {
+      window.location.replace("/auth");
+    }
+  }, [user]);
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <span className="text-lg">No hay datos de usuario disponibles.</span>
-      </div>
-    );
+    // Mientras redirige, puedes retornar null o un loader si prefieres
+    return null;
   }
 
   return (
