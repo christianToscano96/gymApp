@@ -208,7 +208,9 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
     validateField(name, value);
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleBlur = (
+    e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     validateField(name, value);
   };

@@ -1,20 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, LogOut, UserRoundCog, X } from "lucide-react";
+import { CheckCircle, LogOut, UserRoundCog, X, Pencil } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/hook/useUserStore";
-import { formatDateES } from "@/lib/utils";
-
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Mail, Phone, QrCode, RefreshCw } from "lucide-react";
+import { Mail, Phone, QrCode, RefreshCw } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 export default function UserPreviewPage() {
   const [isRenewing, setIsRenewing] = useState(false);
   const [viewProfile, setViewProfile] = useState(false);
+
+  // Local state for editable fields
+  const [editName, setEditName] = useState("");
+  const [editDni, setEditDni] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
 
   const queryClient = useQueryClient();
   const user = useUserStore((state) => state.user);
@@ -34,8 +39,6 @@ export default function UserPreviewPage() {
     alert("¡Membresía renovada exitosamente!");
   };
 
-
-
   const isExpiringSoon = () => {
     if (!user || !user.dueDate) return false;
     const dueDate = new Date(user.dueDate);
@@ -43,51 +46,83 @@ export default function UserPreviewPage() {
     const daysUntilExpiry = Math.ceil(
       (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
-    return daysUntilExpiry <= 30;
+    return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+  };
+
+  const isMembershipExpired = () => {
+    if (!user || !user.dueDate) return false;
+    const dueDate = new Date(user.dueDate);
+    const today = new Date();
+    // Si la fecha de vencimiento es hoy o ya pasó
+    return dueDate < today || dueDate.toDateString() === today.toDateString();
   };
 
   useEffect(() => {
     if (!user) {
       window.location.replace("/auth");
+    } else {
+      setEditName(user.name || "");
+      setEditDni(user.dni || "");
+      setEditEmail(user.email || "");
+      setEditPhone(user.phone || "");
     }
   }, [user]);
   if (!user) {
-    // Mientras redirige, puedes retornar null o un loader si prefieres
     return null;
   }
-
+  console.log(isMembershipExpired());
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
       <div className="mx-auto max-w-md space-y-4">
-        {/* Header with Avatar and Name */}
-        <div className="flex items-center gap-4 p-6 bg-white rounded-3xl border border-gray-200  backdrop-blur-sm">
-          <Avatar
-            src={user.avatar || "/placeholder.svg"}
-            alt={user.name}
-            onClick={() => setViewProfile(!viewProfile)}
-          />
-
-          <div className="flex-1">
-            <h1 className="text-xl font-bold text-gray-900 mb-1">
-              {user.name}
-            </h1>
-            <div className="flex items-center gap-2">
-              {user.status === "Activo" && (
-                <Badge
-                  size="lg"
-                  status="active"
-                  className="flex items-center gap-1"
-                >
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <span className="text-xs font-medium text-green-600">
-                    Activo
-                  </span>
-                </Badge>
-              )}
-              {isExpiringSoon() && (
-                <Badge status="destructive">Próximo a vencer</Badge>
-              )}
-            </div>
+        <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-3xl border border-gray-200 backdrop-blur-sm relative">
+          <div className="flex items-center w-full justify-center relative ml-10">
+            <Avatar
+              src={user.avatar || "/placeholder.svg"}
+              alt={user.name}
+              size="lg"
+            />
+            <button
+              className="ml-2 bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow transition"
+              onClick={() => setViewProfile(!viewProfile)}
+              aria-label="Editar información personal"
+              type="button"
+              style={{ position: "static", transform: "none" }}
+            >
+              <Pencil className="h-5 w-5 text-gray-600" />
+            </button>
+          </div>
+          <h1 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2 text-center">
+            {user.name}
+          </h1>
+          <div className="w-full flex flex-col items-center gap-2 justify-center">
+            {isMembershipExpired() && (
+              <Badge
+                status="destructive"
+                className="w-full ml-2 flex justify-center"
+              >
+                Vencido
+              </Badge>
+            )}
+            {user.status === "Activo" && !isMembershipExpired() && (
+              <Badge
+                size="lg"
+                status="active"
+                className="w-full flex items-center justify-center gap-1"
+              >
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span className="text-xs font-medium text-green-600">
+                  Activo
+                </span>
+              </Badge>
+            )}
+            {isExpiringSoon() && !isMembershipExpired() && (
+              <Badge
+                status="destructive"
+                className="w-full flex justify-center"
+              >
+                Próximo a vencer
+              </Badge>
+            )}
           </div>
         </div>
         {viewProfile && (
@@ -103,121 +138,136 @@ export default function UserPreviewPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                <span className="h-4 w-4 text-muted-foreground font-bold">
+                  👤
+                </span>
+                <div>
+                  <p className="text-sm text-muted-foreground">Nombre</p>
+                  <Input
+                    type="text"
+                    className="w-full"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                <span className="h-4 w-4 text-muted-foreground font-bold">
+                  🆔
+                </span>
+                <div>
+                  <p className="text-sm text-muted-foreground">DNI</p>
+                  <Input
+                    type="text"
+                    className="w-full"
+                    value={editDni}
+                    onChange={(e) => setEditDni(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                 <Mail className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium text-foreground">{user.email}</p>
+                  <Input
+                    type="email"
+                    className="w-full"
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                  />
                 </div>
               </div>
-
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">Teléfono</p>
-                  <p className="font-medium text-foreground">{user.phone}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Fecha de ingreso
-                  </p>
-                  <p className="font-medium text-foreground">
-                    {user.joinDate ? formatDateES(user.joinDate) : "-"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Vencimiento</p>
-                  <p
-                    className={`font-medium ${
-                      isExpiringSoon() ? "text-destructive" : "text-foreground"
-                    }`}
-                  >
-                    {user.dueDate ? formatDateES(user.dueDate) : "-"}
-                  </p>
+                  <Input
+                    type="tel"
+                    className="w-full"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                  />
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* QR Code for Access */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <QrCode className="h-5 w-5 text-primary" />
-              Código de Acceso
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center space-y-4">
-              <div className="p-4 bg-white rounded-xl border-2 border-border shadow-sm">
-                {user.qrImage ? (
-                  <img
-                    src={user.qrImage}
-                    alt="QR Code de acceso al gimnasio"
-                    className="h-48 w-48"
-                  />
+        {/* QR Code for Access (solo si no está vencido) */}
+        {!isMembershipExpired() && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <QrCode className="h-5 w-5 text-primary" />
+                Código de Acceso
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="p-4 bg-white rounded-xl border-2 border-border shadow-sm">
+                  {user.qrImage ? (
+                    <img
+                      src={user.qrImage}
+                      alt="QR Code de acceso al gimnasio"
+                      className="h-48 w-48"
+                    />
+                  ) : (
+                    <span className="text-muted-foreground">No disponible</span>
+                  )}
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Código de miembro
+                  </p>
+                  <p className="font-mono text-sm font-medium text-foreground bg-muted px-2 py-1 rounded">
+                    {user.qrCode || "-"}
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground text-center max-w-sm">
+                  Presenta este código QR en la entrada del gimnasio para
+                  acceder a las instalaciones
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Card de renovación solo si está vencido */}
+        {isMembershipExpired() && (
+          <Card className="border-4 border-black shadow-2xl bg-gradient-to-br from-black via-gray-900 to-black rounded-3xl overflow-hidden">
+            <CardContent className="pt-8 pb-8">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-black text-white mb-3">
+                  ¿Listo para continuar?
+                </h3>
+                <p className="text-gray-300 font-semibold text-lg">
+                  Renueva tu membresía y mantén el acceso
+                </p>
+              </div>
+              <Button
+                onClick={handleRenewMembership}
+                disabled={isRenewing}
+                className="w-full h-16 text-sm font-black bg-gradient-to-r from-white to-gray-100 text-black hover:from-gray-100 hover:to-white shadow-2xl transform transition-all duration-300 hover:scale-[1.02] hover:shadow-3xl rounded-2xl border-2 border-white/20"
+              >
+                {isRenewing ? (
+                  <>
+                    <RefreshCw className="mr-3 h-6 w-6 animate-spin" />
+                    PROCESANDO RENOVACIÓN...
+                  </>
                 ) : (
-                  <span className="text-muted-foreground">No disponible</span>
+                  <>
+                    <RefreshCw className="mr-3 h-6 w-6" />
+                    🚀 RENOVAR MEMBRESÍA AHORA
+                  </>
                 )}
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Código de miembro
-                </p>
-                <p className="font-mono text-sm font-medium text-foreground bg-muted px-2 py-1 rounded">
-                  {user.qrCode || "-"}
-                </p>
-              </div>
-              <p className="text-xs text-muted-foreground text-center max-w-sm">
-                Presenta este código QR en la entrada del gimnasio para acceder
-                a las instalaciones
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-4">
+                Renueva tu membresía para continuar disfrutando de todos los
+                beneficios
               </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-4 border-black shadow-2xl bg-gradient-to-br from-black via-gray-900 to-black rounded-3xl overflow-hidden">
-          <CardContent className="pt-8 pb-8">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-black text-white mb-3">
-                ¿Listo para continuar?
-              </h3>
-              <p className="text-gray-300 font-semibold text-lg">
-                Renueva tu membresía y mantén el acceso
-              </p>
-            </div>
-
-            <Button
-              onClick={handleRenewMembership}
-              disabled={isRenewing}
-              className="w-full h-16 text-sm font-black bg-gradient-to-r from-white to-gray-100 text-black hover:from-gray-100 hover:to-white shadow-2xl transform transition-all duration-300 hover:scale-[1.02] hover:shadow-3xl rounded-2xl border-2 border-white/20"
-            >
-              {isRenewing ? (
-                <>
-                  <RefreshCw className="mr-3 h-6 w-6 animate-spin" />
-                  PROCESANDO RENOVACIÓN...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-3 h-6 w-6" />
-                  🚀 RENOVAR MEMBRESÍA AHORA
-                </>
-              )}
-            </Button>
-            <p className="text-xs text-muted-foreground text-center mt-4">
-              Renueva tu membresía para continuar disfrutando de todos los
-              beneficios
-            </p>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Renewal Button */}
         <div className="border-primary/20 mt-4 mb-6">
