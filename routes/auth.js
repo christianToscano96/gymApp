@@ -32,8 +32,8 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
-function generateToken(id) {
-  return jwt.sign({ id }, process.env.JWT_SECRET || "secret", {
+function generateToken(id, role) {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET || "secret", {
     expiresIn: "1d",
   });
 }
@@ -113,7 +113,7 @@ router.post("/register", async (req, res) => {
       console.error("Error enviando email de alta de usuario:", emailError);
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);
     res.status(201).json({
       token,
       user: formatUser(user),

@@ -180,6 +180,17 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
     );
   }
 
+  const validateField = (name: string, value: string) => {
+    let error = "";
+    if (name === "name" && !value) error = "El nombre es requerido.";
+    if (name === "phone" && !value) error = "El teléfono es requerido.";
+    if (name === "email" && !value) error = "El email es requerido.";
+    if (name === "dni" && !value) error = "El DNI es requerido.";
+    if (name === "role" && !value) error = "El rol es requerido.";
+    if (name === "status" && !value) error = "El estado es requerido.";
+    setErrors((prev) => ({ ...prev, [name]: error }));
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -194,6 +205,12 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
       }
       return newForm;
     });
+    validateField(name, value);
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    validateField(name, value);
   };
 
   const saveUser = async () => {
@@ -378,9 +395,9 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
   return (
     <form
       onSubmit={handleSubmit}
-  className="w-full h-full bg-white p-0 sm:p-6 md:p-8 space-y-3 md:space-y-4 overflow-auto"
+      className="w-full h-full bg-white p-0 sm:p-6 md:p-8 space-y-3 md:space-y-4 overflow-auto"
     >
-      {(id || typeof window === 'undefined' || window.innerWidth >= 640) && (
+      {(id || typeof window === "undefined" || window.innerWidth >= 640) && (
         <div className="flex flex-col items-center mb-2">
           <label htmlFor="avatar" className="cursor-pointer">
             <div className="w-20 h-20 xs:w-24 xs:h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-gray-100">
@@ -414,6 +431,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           name="name"
           value={form.name}
           onChange={handleChange}
+          onBlur={handleBlur}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           required
         />
@@ -431,12 +449,13 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
             <Select
               options={ROLE_OPTIONS}
               value={form.role}
-              onChange={(value) =>
+              onChange={(value) => {
                 setForm((prev) => ({
                   ...prev,
                   role: value as "administrator" | "user" | "staff",
-                }))
-              }
+                }));
+                validateField("role", value);
+              }}
               placeholder="Selecciona rol"
               className="w-full"
             />
@@ -451,12 +470,13 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
             <Select
               options={STATUS_OPTIONS}
               value={form.status}
-              onChange={(value) =>
+              onChange={(value) => {
                 setForm((prev) => ({
                   ...prev,
                   status: value as "Activo" | "Pendiente" | "Vencido",
-                }))
-              }
+                }));
+                validateField("status", value);
+              }}
               placeholder="Selecciona estado"
               className="w-full"
             />
@@ -482,7 +502,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
         </div>
       )}
 
-  <div className="flex flex-col gap-2 sm:gap-4 sm:flex-row">
+      <div className="flex flex-col gap-2 sm:gap-4 sm:flex-row">
         <div className="flex-1">
           <Label className="block text-sm font-medium text-gray-700">
             Teléfono
@@ -492,6 +512,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
             name="phone"
             value={form.phone}
             onChange={handleChange}
+            onBlur={handleBlur}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             required
           />
@@ -508,6 +529,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
             name="email"
             value={form.email}
             onChange={handleChange}
+            onBlur={handleBlur}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             required
           />
@@ -523,6 +545,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           name="dni"
           value={form.dni}
           onChange={handleChange}
+          onBlur={handleBlur}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           required
         />
@@ -650,7 +673,10 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
           </div>
         </div>
       )}
-  <Button type="submit" className="w-full py-2 px-4 transition mt-3 md:mt-4">
+      <Button
+        type="submit"
+        className="w-full py-2 px-4 transition mt-3 md:mt-4"
+      >
         {id ? "Actualizar usuario" : "Crear usuario"}
       </Button>
     </form>

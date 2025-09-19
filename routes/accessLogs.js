@@ -1,9 +1,10 @@
 import express from 'express';
 import AccessLog from '../models/AccessLog.js';
+import authMiddleware, { authorizeRoles } from '../middleware/auth.js';
 const router = express.Router();
 
-// Registrar acceso
-router.post('/', async (req, res) => {
+// Registrar acceso (solo admin y staff)
+router.post('/', authMiddleware, authorizeRoles('administrator', 'staff'), async (req, res) => {
   try {
     const { userId, status, name, avatar } = req.body;
     if (!userId || !status) {
@@ -17,8 +18,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Listar accesos
-router.get('/', async (req, res) => {
+// Listar accesos (solo admin y staff)
+router.get('/', authMiddleware, authorizeRoles('administrator', 'staff'), async (req, res) => {
   try {
     const logs = await AccessLog.find();
     res.json(logs);
