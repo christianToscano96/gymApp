@@ -13,3 +13,17 @@ function authMiddleware(req, res, next) {
 }
 
 export default authMiddleware;
+
+// Middleware para control de roles
+export function authorizeRoles(...allowedRoles) {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'No autenticado' });
+    }
+    // El rol debe estar en req.user.role
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'No tienes permisos para acceder a este recurso' });
+    }
+    next();
+  };
+}

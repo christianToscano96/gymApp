@@ -1,10 +1,11 @@
 import express from "express";
 import Payment from "../models/Payment.js";
 import User from "../models/User.js";
+import authMiddleware, { authorizeRoles } from "../middleware/auth.js";
 const router = express.Router();
 
-// Crear pago
-router.post("/", async (req, res) => {
+// Crear pago (solo admin y staff)
+router.post("/", authMiddleware, authorizeRoles("administrator", "staff"), async (req, res) => {
   try {
     const payment = new Payment(req.body);
     await payment.save();
@@ -29,8 +30,8 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Listar pagos
-router.get("/", async (req, res) => {
+// Listar pagos (solo admin)
+router.get("/", authMiddleware, authorizeRoles("administrator"), async (req, res) => {
   try {
     const payments = await Payment.find();
     res.json(payments);
