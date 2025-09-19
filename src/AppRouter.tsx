@@ -2,7 +2,7 @@ import React from "react";
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import AuthLayout from "./auth/layaout/AuthLayout";
+import AuthLayout from "./auth/layout/AuthLayout";
 import LoginPage from "./auth/pages/LoginPage";
 import PrivateRoute from "./auth/components/PrivateRoute";
 import RegisterForm from "./auth/pages/RegisterForm";

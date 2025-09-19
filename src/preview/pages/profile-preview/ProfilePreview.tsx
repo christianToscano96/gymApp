@@ -1,4 +1,5 @@
 import React from "react";
+import { formatDateES } from "@/lib/utils";
 import { useNavigate } from "react-router";
 import { ChevronLeftIcon } from "lucide-react";
 import { useCurrentUser } from "@/hook/useCurrentUser";
@@ -14,17 +15,7 @@ interface ProfilePreviewProps {
 const ProfilePreview: React.FC<ProfilePreviewProps> = ({ id }) => {
   const { data: user } = useCurrentUser();
 
-  // Formatear fechas si existen y son válidas
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "-";
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr;
-    return date.toLocaleDateString("es-MX", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  // Usar función utilitaria para formatear fechas
   const { setAvatar, handleAvatarChange } = useAvatarResize();
 
   const { avatar, status, name, email, phone, role, lastVisit } = user || {
@@ -121,7 +112,7 @@ const ProfilePreview: React.FC<ProfilePreviewProps> = ({ id }) => {
           <div className="bg-gray-50 rounded-lg p-4 text-center text-gray-700 font-semibold">
             <span className="block text-xs text-gray-400">Última visita</span>
             <span className="block text-base font-bold text-gray-700 mt-2">
-              {formatDate(lastVisit)}
+              {formatDateES(lastVisit)}
             </span>
           </div>
           <div className="bg-gray-50 rounded-lg p-4 text-center text-gray-700 font-semibold">

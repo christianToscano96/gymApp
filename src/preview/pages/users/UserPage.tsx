@@ -1,3 +1,4 @@
+import type { User } from "@/preview/interfaces/preview.interfaces";
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs } from "@/components/ui/tabs";
@@ -22,16 +23,10 @@ import { useCurrentUser } from "@/hook/useCurrentUser";
 
 import { fetchUsers } from "@/api/userService";
 import { AddUserForm } from "./AddUserForm";
-import type { User } from "@/preview/interfaces/preview.interfaces";
 
-const formatDate = (date?: string) => {
-  if (!date) return "-";
-  try {
-    return new Date(date).toISOString().slice(0, 10);
-  } catch {
-    return "-";
-  }
-};
+import { formatDateES } from "@/lib/utils";
+
+
 
 const UsersPage = () => {
   const [dialogState, setDialogState] = useState({
@@ -259,7 +254,7 @@ const UserTableRow = ({
     </TableCell>
     <TableCell className="hidden md:table-cell flex-1 text-gray-500 ">
       <div className="flex items-center gap-2">
-        <Calendar className="w-3 h-3" /> {formatDate(user.joinDate)}
+  <Calendar className="w-3 h-3" /> {formatDateES(user.joinDate)}
       </div>
     </TableCell>
     {user.role !== "administrator" ? (
@@ -279,7 +274,7 @@ const UserTableRow = ({
             }`}
           >
             <div className="flex items-center gap-2">
-              <Calendar className="w-3 h-3" /> {formatDate(user.dueDate)}
+              <Calendar className="w-3 h-3" /> {formatDateES(user.dueDate)}
             </div>
           </TableCell>
         );
@@ -291,7 +286,7 @@ const UserTableRow = ({
     )}
     <TableCell className="hidden md:table-cell flex-1  text-gray-500 pb-3">
       <div className="flex items-center gap-2">
-        <Calendar className="w-3 h-3" /> {formatDate(user.lastVisit)}
+        <Calendar className="w-3 h-3" /> {formatDateES(user.lastVisit)}
       </div>
     </TableCell>
     <TableCell>

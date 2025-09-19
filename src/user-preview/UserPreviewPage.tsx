@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { CheckCircle, LogOut, UserRoundCog, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { User } from "../preview/interfaces/preview.interfaces";
+import { formatDateES } from "@/lib/utils";
+import type { User } from "../preview/interfaces/preview.interfaces";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,13 +32,7 @@ export default function UserPreviewPage() {
     alert("¡Membresía renovada exitosamente!");
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+
 
   const isExpiringSoon = () => {
     if (!user || !user.dueDate) return false;
@@ -73,7 +68,7 @@ export default function UserPreviewPage() {
               {user.name}
             </h1>
             <div className="flex items-center gap-2">
-              {user.status === "activo" && (
+              {user.status === "Activo" && (
                 <Badge
                   size="lg"
                   status="active"
@@ -126,7 +121,7 @@ export default function UserPreviewPage() {
                     Fecha de ingreso
                   </p>
                   <p className="font-medium text-foreground">
-                    {user.joinDate ? formatDate(user.joinDate) : "-"}
+                    {user.joinDate ? formatDateES(user.joinDate) : "-"}
                   </p>
                 </div>
               </div>
@@ -140,7 +135,7 @@ export default function UserPreviewPage() {
                       isExpiringSoon() ? "text-destructive" : "text-foreground"
                     }`}
                   >
-                    {user.dueDate ? formatDate(user.dueDate) : "-"}
+                    {user.dueDate ? formatDateES(user.dueDate) : "-"}
                   </p>
                 </div>
               </div>
