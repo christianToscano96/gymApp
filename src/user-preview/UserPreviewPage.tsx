@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAvatarResize } from "@/hook/useAvatarResize";
 import { CheckCircle, LogOut, UserRoundCog, X, Pencil } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/hook/useUserStore";
+import { updateUser } from "@/api/userService";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, QrCode, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { toast, Toaster } from "sonner";
 
 export default function UserPreviewPage() {
   const [isRenewing, setIsRenewing] = useState(false);
@@ -20,6 +23,8 @@ export default function UserPreviewPage() {
   const [editDni, setEditDni] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const { avatar, setAvatar, handleAvatarChange } = useAvatarResize();
 
   const queryClient = useQueryClient();
   const user = useUserStore((state) => state.user);
@@ -65,66 +70,97 @@ export default function UserPreviewPage() {
       setEditDni(user.dni || "");
       setEditEmail(user.email || "");
       setEditPhone(user.phone || "");
+      setAvatar(user.avatar || "");
     }
+    // eslint-disable-next-line
   }, [user]);
+
+  const setUser = useUserStore((state) => state.setUser);
+
+  const handleSave = async () => {
+    if (!user) return;
+    setIsSaving(true);
+
+    try {
+      const updatedUser = {
+        ...user,
+        name: editName,
+        dni: editDni,
+        email: editEmail,
+        phone: editPhone,
+        avatar: avatar || user.avatar || "",
+      };
+      const res = await updateUser(user._id, updatedUser);
+      setUser(res); // Actualiza el usuario logeado en el store
+      setViewProfile(false);
+      toast.success("Usuario actualizado correctamente");
+    } catch (err) {
+      toast.error("Error al actualizar usuario: " + (err as Error).message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
   if (!user) {
     return null;
   }
-  console.log(isMembershipExpired());
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
+    <div className="min-h-screen p-4 md:p-6">
+      <Toaster position="top-center" richColors />
       <div className="mx-auto max-w-md space-y-4">
-        <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-3xl border border-gray-200 backdrop-blur-sm relative">
-          <div className="flex items-center w-full justify-center relative ml-10">
-            <Avatar
-              src={user.avatar || "/placeholder.svg"}
-              alt={user.name}
-              size="lg"
-            />
-            <button
-              className="ml-2 bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow transition"
-              onClick={() => setViewProfile(!viewProfile)}
-              aria-label="Editar información personal"
-              type="button"
-              style={{ position: "static", transform: "none" }}
-            >
-              <Pencil className="h-5 w-5 text-gray-600" />
-            </button>
-          </div>
-          <h1 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2 text-center">
-            {user.name}
-          </h1>
-          <div className="w-full flex flex-col items-center gap-2 justify-center">
-            {isMembershipExpired() && (
-              <Badge
-                status="destructive"
-                className="w-full ml-2 flex justify-center"
-              >
-                Vencido
-              </Badge>
-            )}
-            {user.status === "Activo" && !isMembershipExpired() && (
-              <Badge
+        {!viewProfile && (
+          <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-3xl border border-gray-200 backdrop-blur-sm relative">
+            <div className="flex items-center w-full justify-center relative ml-10">
+              <Avatar
+                src={avatar || user.avatar || "/placeholder.svg"}
+                alt={user.name}
                 size="lg"
-                status="active"
-                className="w-full flex items-center justify-center gap-1"
+              />
+              <button
+                className="ml-2 bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow transition"
+                onClick={() => setViewProfile(!viewProfile)}
+                aria-label="Editar información personal"
+                type="button"
+                style={{ position: "static", transform: "none" }}
               >
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-xs font-medium text-green-600">
-                  Activo
-                </span>
-              </Badge>
-            )}
-            {isExpiringSoon() && !isMembershipExpired() && (
-              <Badge
-                status="destructive"
-                className="w-full flex justify-center"
-              >
-                Próximo a vencer
-              </Badge>
-            )}
+                <Pencil className="h-5 w-5 text-gray-600" />
+              </button>
+            </div>
+            <h1 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2 text-center">
+              {user.name}
+            </h1>
+            <div className="w-full flex flex-col items-center gap-2 justify-center">
+              {isMembershipExpired() && (
+                <Badge
+                  status="destructive"
+                  className="w-full ml-2 flex justify-center"
+                >
+                  Vencido
+                </Badge>
+              )}
+              {user.status === "Activo" && !isMembershipExpired() && (
+                <Badge
+                  size="lg"
+                  status="active"
+                  className="w-full flex items-center justify-center gap-1"
+                >
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-xs font-medium text-green-600">
+                    Activo
+                  </span>
+                </Badge>
+              )}
+              {isExpiringSoon() && !isMembershipExpired() && (
+                <Badge
+                  status="destructive"
+                  className="w-full flex justify-center"
+                >
+                  Próximo a vencer
+                </Badge>
+              )}
+            </div>
           </div>
-        </div>
+        )}
+
         {viewProfile && (
           <Card>
             <CardHeader>
@@ -137,6 +173,24 @@ export default function UserPreviewPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex flex-col items-center gap-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Avatar
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                />
+                {avatar && (
+                  <img
+                    src={avatar}
+                    alt="Nuevo avatar"
+                    className="w-20 h-20 rounded-full object-cover mt-2"
+                  />
+                )}
+              </div>
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                 <span className="h-4 w-4 text-muted-foreground font-bold">
                   👤
@@ -145,7 +199,7 @@ export default function UserPreviewPage() {
                   <p className="text-sm text-muted-foreground">Nombre</p>
                   <Input
                     type="text"
-                    className="w-full"
+                    className="w-full block"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                   />
@@ -155,11 +209,11 @@ export default function UserPreviewPage() {
                 <span className="h-4 w-4 text-muted-foreground font-bold">
                   🆔
                 </span>
-                <div>
+                <div className="w-full">
                   <p className="text-sm text-muted-foreground">DNI</p>
                   <Input
                     type="text"
-                    className="w-full"
+                    className="w-full block"
                     value={editDni}
                     onChange={(e) => setEditDni(e.target.value)}
                   />
@@ -167,11 +221,11 @@ export default function UserPreviewPage() {
               </div>
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <div>
+                <div className="w-full">
                   <p className="text-sm text-muted-foreground">Email</p>
                   <Input
                     type="email"
-                    className="w-full"
+                    className="w-full block"
                     value={editEmail}
                     onChange={(e) => setEditEmail(e.target.value)}
                   />
@@ -179,15 +233,25 @@ export default function UserPreviewPage() {
               </div>
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <div>
+                <div className="w-full">
                   <p className="text-sm text-muted-foreground">Teléfono</p>
                   <Input
                     type="tel"
-                    className="w-full"
+                    className="w-full block"
                     value={editPhone}
                     onChange={(e) => setEditPhone(e.target.value)}
                   />
                 </div>
+              </div>
+              <div className="flex justify-center w-full">
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="mt-2"
+                  size="lg"
+                >
+                  {isSaving ? "Guardando..." : "Guardar cambios"}
+                </Button>
               </div>
             </CardContent>
           </Card>
