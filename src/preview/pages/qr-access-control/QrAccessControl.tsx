@@ -62,16 +62,37 @@ const QrAccessControl = () => {
   const dd = today.getDate();
 
   const filteredAccessLogs = Array.isArray(accessLogs)
-    ? accessLogs.filter((log) => {
-        const logDate = new Date(log.timestamp || log.date);
-        const isToday =
-          logDate.getFullYear() === yyyy &&
-          logDate.getMonth() + 1 === mm &&
-          logDate.getDate() === dd;
-        const matchesSearch =
-          log.name && log.name.toLowerCase().includes(searchTerm.toLowerCase());
-        return isToday && matchesSearch;
-      })
+    ? accessLogs
+        .filter((log) => {
+          const logDate = new Date(log.createdAt);
+          const isToday =
+            logDate.getFullYear() === yyyy &&
+            logDate.getMonth() + 1 === mm &&
+            logDate.getDate() === dd;
+          // Si hay búsqueda, buscar por name del log o del usuario relacionado
+          if (searchTerm.trim() !== "") {
+            const user = users.find(
+              (u) => u._id === (log.userId || log.userId?._id)
+            );
+            const nameToSearch = log.name || user?.name || "";
+            return (
+              isToday &&
+              nameToSearch.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+          }
+          return isToday;
+        })
+        .map((log) => {
+          // Enriquecer con datos del usuario si faltan
+          const user = users.find(
+            (u) => u._id === (log.userId || log.userId?._id)
+          );
+          return {
+            ...log,
+            name: log.name || user?.name || "-",
+            avatar: log.avatar || user?.avatar || undefined,
+          };
+        })
     : [];
 
   const handleScan = async (decodedText: string) => {
@@ -105,7 +126,8 @@ const QrAccessControl = () => {
             avatar: scannedUser.photo,
           },
           {
-            onSuccess: () => {
+            onSuccess: (data) => {
+              console.log("Respuesta al guardar acceso:", data);
               toast.success(
                 `Acceso ${allowed ? "permitido" : "denegado"} guardado`
               );
@@ -115,7 +137,8 @@ const QrAccessControl = () => {
                 setShowScanner(true);
               }, 1000);
             },
-            onError: () => {
+            onError: (error) => {
+              console.error("Error al guardar acceso:", error);
               toast.error("Error al guardar el acceso");
               setTimeout(() => {
                 setScannedUser(null);
@@ -134,7 +157,7 @@ const QrAccessControl = () => {
   };
   const logsToday = Array.isArray(accessLogs)
     ? (accessLogs as AccessLogs[]).filter((log) => {
-        const logDate = new Date(log.timestamp || log.date);
+        const logDate = new Date(log.createdAt);
         return (
           logDate.getFullYear() === yyyy &&
           logDate.getMonth() + 1 === mm &&
@@ -152,7 +175,7 @@ const QrAccessControl = () => {
 
   const hourCounts: Record<string, number> = {};
   logsToday.forEach((log) => {
-    const hour = new Date(log.timestamp || log.date).getHours();
+    const hour = new Date(log.createdAt).getHours();
     hourCounts[hour] = (hourCounts[hour] || 0) + 1;
   });
   const peakHour = Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0];
@@ -358,8 +381,8 @@ const QrAccessControl = () => {
                   )}
                 {filteredAccessLogs
                   .sort((a, b) => {
-                    const dateA = new Date(a.timestamp || a.date).getTime();
-                    const dateB = new Date(b.timestamp || b.date).getTime();
+                    const dateA = new Date(a.createdAt).getTime();
+                    const dateB = new Date(b.createdAt).getTime();
                     return dateB - dateA;
                   })
                   .map(
@@ -368,7 +391,7 @@ const QrAccessControl = () => {
                       name?: string;
                       avatar?: string;
                       status: string;
-                      timestamp: string;
+                      createdAt: string;
                     }) => (
                       <TableRow key={log._id}>
                         <TableCell className="pl-2 sm:pl-4">
@@ -392,13 +415,13 @@ const QrAccessControl = () => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm">
-                          {log.timestamp
-                            ? new Date(log.timestamp).toLocaleTimeString()
+                          {log.createdAt
+                            ? new Date(log.createdAt).toLocaleTimeString()
                             : "-"}
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm">
-                          {log.timestamp
-                            ? new Date(log.timestamp).toLocaleDateString()
+                          {log.createdAt
+                            ? new Date(log.createdAt).toLocaleDateString()
                             : "-"}
                         </TableCell>
                       </TableRow>

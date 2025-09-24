@@ -258,36 +258,36 @@ const UsersPage = () => {
                   onDelete={() => handleOpenDialog(user._id)}
                 />
               ))}
-              {/* Paginación */}
-              <div
-                className="flex justify-center items-center gap-2 mt-4"
-                role="navigation"
-                aria-label="Paginación de usuarios"
-              >
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  aria-label="Página anterior"
-                >
-                  Anterior
-                </Button>
-                <span className="text-xs">
-                  Página {page} de {totalPages || 1}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages || totalPages === 0}
-                  aria-label="Página siguiente"
-                >
-                  Siguiente
-                </Button>
-              </div>
             </TableBody>
           </Table>
+          {/* Paginación */}
+          <div
+            className="flex justify-center items-center gap-2 mt-4"
+            role="navigation"
+            aria-label="Paginación de usuarios"
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              aria-label="Página anterior"
+            >
+              Anterior
+            </Button>
+            <span className="text-xs">
+              Página {page} de {totalPages || 1}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages || totalPages === 0}
+              aria-label="Página siguiente"
+            >
+              Siguiente
+            </Button>
+          </div>
           {dialogState.openDialog && (
             <AlertDialog
               isOpen={dialogState.openDialog}

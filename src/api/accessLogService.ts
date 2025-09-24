@@ -1,7 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 
+
+const getToken = () => localStorage.getItem('token');
+
 const fetchAccessLogs = async () => {
-  const res = await fetch('/api/access-logs');
+  const token = getToken();
+  const res = await fetch('/api/access-logs', {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  });
   if (!res.ok) throw new Error('Error al obtener accesos');
   return res.json();
 };
@@ -15,10 +23,12 @@ export const useAccessLogs = () => {
 import { useMutation } from '@tanstack/react-query';
 
 const postAccessLog = async (userId: string, status: 'permitido' | 'denegado', name: string, avatar: string) => {
+  const token = getToken();
   const res = await fetch('/api/access-logs', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
     },
     body: JSON.stringify({ userId, status, name, avatar }),
   });

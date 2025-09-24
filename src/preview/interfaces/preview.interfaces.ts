@@ -19,12 +19,11 @@ export interface User {
 }
 
 export interface AccessLogs  {
-  id: string,
-  user: string,
-  timestamp: string,
-  status: "permitido" | "denegado",
-  date: string,
-  membership: "Básico" | "Premium"
+  _id: string;
+  name: string;
+  avatar?: string;
+  status: "permitido" | "denegado";
+  createdAt: string;
 }
 
 
