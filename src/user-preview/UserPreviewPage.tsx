@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useAvatarResize } from "@/hook/useAvatarResize";
-import { CheckCircle, LogOut, UserRoundCog, X, Pencil } from "lucide-react";
+import {
+  CheckCircle,
+  LogOut,
+  UserRoundCog,
+  X,
+  Pencil,
+  User,
+  IdCard,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/hook/useUserStore";
 import { updateUser } from "@/api/userService";
@@ -192,10 +200,8 @@ export default function UserPreviewPage() {
                 )}
               </div>
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                <span className="h-4 w-4 text-muted-foreground font-bold">
-                  👤
-                </span>
-                <div>
+                <User className="h-4 w-4 text-muted-foreground" />
+                <div className="w-full">
                   <p className="text-sm text-muted-foreground">Nombre</p>
                   <Input
                     type="text"
@@ -206,9 +212,7 @@ export default function UserPreviewPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                <span className="h-4 w-4 text-muted-foreground font-bold">
-                  🆔
-                </span>
+                <IdCard className="h-4 w-4 text-muted-foreground" />
                 <div className="w-full">
                   <p className="text-sm text-muted-foreground">DNI</p>
                   <Input

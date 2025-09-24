@@ -67,6 +67,7 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
         setUser(fullUser);
         queryClient.setQueryData(["user"], fullUser);
         localStorage.setItem("userId", data.user.id);
+        localStorage.setItem("token", data.token); // Guarda el token JWT
         setSuccessMsg("Inicio de sesión exitoso");
         setShowSuccess(true);
         // Redirigir según el rol

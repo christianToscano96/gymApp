@@ -2,7 +2,14 @@ import { useNavigate, Outlet, useLocation } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import Menu from "../components/menu";
 import Avatar from "@/components/ui/avatar";
-import { HoverCardUI } from "@/components/ui/hover-card";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { useCurrentUser } from "@/hook/useCurrentUser";
 import { Bell, Settings, LogOut } from "lucide-react";
 import { Toaster } from "sonner";
@@ -35,8 +42,8 @@ export default function GymLayout() {
 
         <div className="text-lg flex items-center gap-4">
           <Bell />
-          <HoverCardUI
-            trigger={
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-2 cursor-pointer mr-5">
                 {isLoading ? (
                   <Avatar alt="Cargando..." />
@@ -48,25 +55,18 @@ export default function GymLayout() {
                   />
                 )}
               </div>
-            }
-          >
-            <div className="flex flex-col items-center gap-2">
-              <div
-                className="w-full flex items-center gap-2 px-3 py-2 rounded cursor-pointer  transition"
-                onClick={() => navigate(`/preview/${currentUser?._id}`)}
-              >
-                <Settings className="h-4 w-4" />
-                <span>Mi Perfil</span>
-              </div>
-              <div
-                className="w-full flex items-center gap-2 px-3 py-2 rounded cursor-pointer  transition"
-                onClick={onLogout}
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </div>
-            </div>
-          </HoverCardUI>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>Cuenta</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate(`/preview/${currentUser?._id}`)}>
+                <Settings className="h-4 w-4 mr-2" /> Mi Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onLogout}>
+                <LogOut className="h-4 w-4 mr-2" /> Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 

@@ -1,8 +1,28 @@
 import type { Payments } from "@/preview/interfaces/preview.interfaces";
 
+// Obtener token del usuario desde localStorage (ajusta si lo guardas en otro lado)
+function getAuthToken() {
+  try {
+    const userStr = localStorage.getItem('user-storage');
+    if (!userStr) return null;
+    const userObj = JSON.parse(userStr)?.state?.user;
+    return userObj?.token || null;
+  } catch {
+    return null;
+  }
+}
+
 // Utilidad para fetch con manejo de errores
 async function fetchWithErrorHandling(url: string, options?: RequestInit, defaultErrorMsg = "Error en la petición") {
-  const res = await fetch(url, options);
+  const token = getAuthToken();
+  const mergedOptions = {
+    ...options,
+    headers: {
+      ...(options?.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  };
+  const res = await fetch(url, mergedOptions);
   if (!res.ok) {
     let errorMsg = defaultErrorMsg;
     try {

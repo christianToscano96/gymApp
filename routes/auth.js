@@ -1,3 +1,4 @@
+import authMiddleware from "../middleware/auth.js";
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -139,13 +140,25 @@ router.post("/login", async (req, res) => {
     if (password !== last4Dni) {
       return res.status(400).json({ error: "Credenciales inválidas" });
     }
-    const token = generateToken(user._id);
+    // Generar token con id y role
+    const token = generateToken(user._id, user.role);
     res.json({
       token,
       user: formatUser(user),
       qrImage: user.qrImage,
       qrCode: user.qrCode,
     });
+  } catch (err) {
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+// Endpoint para validar token y devolver usuario autenticado
+router.post("/check", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+    res.json({ user: formatUser(user) });
   } catch (err) {
     res.status(500).json({ error: "Error interno del servidor" });
   }
