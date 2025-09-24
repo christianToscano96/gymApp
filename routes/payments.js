@@ -41,3 +41,31 @@ router.get("/", authMiddleware, authorizeRoles("administrator"), async (req, res
 });
 
 export default router;
+
+// Actualizar pago (solo admin y staff)
+router.patch("/:id", authMiddleware, authorizeRoles("administrator", "staff"), async (req, res) => {
+  try {
+    const payment = await Payment.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!payment) {
+      return res.status(404).json({ error: "Pago no encontrado" });
+    }
+
+    // Si se envía userId y expirationDate, actualiza el usuario
+    if (req.body.userId && req.body.expirationDate) {
+      await User.findByIdAndUpdate(
+        req.body.userId,
+        {
+          dueDate: req.body.expirationDate,
+          ...(req.body.expirationType && {
+            expirationType: req.body.expirationType,
+          }),
+        },
+        { new: true }
+      );
+    }
+
+    res.json(payment);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});

@@ -7,8 +7,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchUsers } from "@/api/userService";
 import type { User } from "@/preview/interfaces/preview.interfaces";
 import type { Payments } from "@/preview/interfaces/preview.interfaces";
-import { createPaymentWithUser } from "@/api/paymentService";
-import { updateUser } from "@/api/userService";
+import { createPaymentWithUser, updatePaymentWithUser } from "@/api/paymentService";
+
 
 interface PaymentFormProps {
   openModal: boolean;
@@ -30,7 +30,9 @@ const PaymentForm = ({ openModal, setOpenModal, userId }: PaymentFormProps) => {
     { label: "15 días", value: "15" },
     { label: "Mensual", value: "monthly" },
   ];
-  const [expirationType, setExpirationType] = useState<"1" | "15" | "monthly" | "">("");
+  const [expirationType, setExpirationType] = useState<
+    "1" | "15" | "monthly" | ""
+  >("");
 
   function calculateExpiration(startDate: string, type: string) {
     if (!startDate) return "";
@@ -108,35 +110,45 @@ const PaymentForm = ({ openModal, setOpenModal, userId }: PaymentFormProps) => {
   const queryClient = useQueryClient();
 
   const [method, setMethod] = useState<Payments["method"]>("Efectivo");
+  // Si hay un pago existente, usa update, si no, crea uno nuevo
   const mutation = useMutation({
     mutationFn: async () => {
       if (!selectedUser) throw new Error("No hay usuario seleccionado");
-      await createPaymentWithUser({
-        user: selectedUser.name,
-        amount,
-        status: "Pagado",
-        concept,
-        method,
-        dueDate: getNextDueDate(),
-        date: new Date().toISOString().slice(0, 10),
-        userId: selectedUser._id,
-        expirationDate: getNextDueDate(),
-        expirationType,
-      });
-      // 2. Actualizar dueDate y tipo de vencimiento del usuario en la BD
-      if (getNextDueDate()) {
-        await updateUser(selectedUser._id, {
-          ...selectedUser,
+      // Si el usuario tiene un pago activo, actualiza, si no, crea
+      const userWithPayment = selectedUser as User & { paymentId?: string };
+      if (userWithPayment.paymentId) {
+        await updatePaymentWithUser(userWithPayment.paymentId, {
+          user: userWithPayment._id,
+          amount,
+          status: "Pagado",
+          concept,
+          method,
           dueDate: getNextDueDate(),
-          expirationType,
+          paymentDate: new Date().toISOString().slice(0, 10),
+          userId: userWithPayment._id,
+          expirationDate: getNextDueDate(),
+          expirationType: expirationType || undefined,
+        });
+      } else {
+        await createPaymentWithUser({
+          user: selectedUser._id,
+          amount,
+          status: "Pagado",
+          concept,
+          method,
+          dueDate: getNextDueDate(),
+          paymentDate: new Date().toISOString().slice(0, 10),
+          userId: selectedUser._id,
+          expirationDate: getNextDueDate(),
+          expirationType: expirationType || undefined,
         });
       }
     },
     onSuccess: () => {
-  toast.success("Pago registrado y usuario actualizado");
-  queryClient.invalidateQueries({ queryKey: ["payments"] });
-  queryClient.invalidateQueries({ queryKey: ["users"] });
-  setOpenModal(false);
+      toast.success("Pago registrado y usuario actualizado");
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      setOpenModal(false);
     },
     onError: (err: unknown) => {
       if (err instanceof Error) {
@@ -154,7 +166,7 @@ const PaymentForm = ({ openModal, setOpenModal, userId }: PaymentFormProps) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-  mutation.mutate();
+    mutation.mutate();
   };
   return (
     <div className="relative w-full">
@@ -218,7 +230,7 @@ const PaymentForm = ({ openModal, setOpenModal, userId }: PaymentFormProps) => {
           <select
             className="w-full border rounded px-3 py-2 mt-1"
             value={expirationType}
-            onChange={(e) => setExpirationType(e.target.value)}
+            onChange={(e) => setExpirationType(e.target.value as "1" | "15" | "monthly" | "" )}
             required
           >
             <option value="" disabled>

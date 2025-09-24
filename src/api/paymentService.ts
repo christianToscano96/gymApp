@@ -54,6 +54,21 @@ export const createPaymentWithUser = async (payment: Omit<Payments, "id"> & { us
   }, "Error al registrar pago");
 };
 
+// Actualizar pago y dueDate del usuario
+export const updatePaymentWithUser = async (
+  id: string,
+  payment: Partial<Payments> & { userId: string; expirationDate: string; expirationType?: "1" | "15" | "monthly" }
+) => {
+  return fetchWithErrorHandling(`/api/payments/${id}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payment),
+    },
+    "Error al actualizar pago"
+  );
+};
+
 export const fetchPayments = async () => {
   return fetchWithErrorHandling("/api/payments", undefined, "Error al obtener pagos");
 };

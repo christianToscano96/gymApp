@@ -8,6 +8,7 @@ import accessLogRoutes from "./routes/accessLogs.js";
 import authRoutes from "./routes/auth.js";
 import authMiddleware from "./middleware/auth.js";
 import dotenv from "dotenv";
+import usersRoutes from "./routes/users.js";
 dotenv.config();
 
 const app = express();
@@ -64,9 +65,14 @@ app.put("/api/users/:id", async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
-    // Solo permitir actualizar dueDate si el rol es 'user'
-    if (user.role === "user" && req.body.dueDate !== undefined) {
-      user.dueDate = req.body.dueDate;
+    // Solo permitir actualizar dueDate y expirationType si el rol es 'user'
+    if (user.role === "user") {
+      if (req.body.dueDate !== undefined) {
+        user.dueDate = req.body.dueDate;
+      }
+      if (req.body.expirationType !== undefined) {
+        user.expirationType = req.body.expirationType;
+      }
     }
     // Actualizar otros campos permitidos
     user.name = req.body.name ?? user.name;
@@ -123,6 +129,7 @@ app.get("/api/users", async (req, res) => {
 app.use("/api/payments", paymentRoutes);
 app.use("/api/access-logs", accessLogRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/users", usersRoutes);
 
 // Ejemplo de ruta protegida
 app.get("/api/protected", authMiddleware, (req, res) => {

@@ -33,6 +33,7 @@ export const useGetStatusColor = (status: Status) => {
       case "pending":
       case "pendiente":
       case "vacant":
+      case "warning":
         return "bg-orange-100 text-orange-800 border-orange-200";
       case "basico":
         return "bg-secondary text-secondary-foreground";
@@ -40,11 +41,13 @@ export const useGetStatusColor = (status: Status) => {
       case "maintenance":
       case "inactive":
       case "vencido":
+      case "Vencido":
       case "denegado":
       case "destructive":
         return "bg-red-100 text-red-800 border-red-200";
       case "premium":
         return "bg-blue-100 text-blue-800 border-blue-200";
+
       default:
         return "bg-muted text-muted-foreground";
     }
