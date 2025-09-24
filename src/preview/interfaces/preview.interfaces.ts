@@ -31,7 +31,7 @@ export interface Payments {
   id: number,
   user: string,
   amount: number,
-  date: string,
+  paymentDate: string,
   status: "Pagado" | "Pendiente" | "Vencido",
   method: "Tarjeta" | "Efectivo" | "Transferencia",
   concept: string,

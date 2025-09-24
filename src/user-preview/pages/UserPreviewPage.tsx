@@ -10,12 +10,14 @@ import {
   Pencil,
   User,
   IdCard,
+  AlertTriangle,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/hook/useUserStore";
-import { updateUser } from "@/api/userService";
+import { updateUser, updateUserLastVisit } from "@/api/userService";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { UserPaymentForm } from "../components/UserPaymentForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, QrCode, RefreshCw } from "lucide-react";
@@ -23,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { toast, Toaster } from "sonner";
 
 export default function UserPreviewPage() {
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isRenewing, setIsRenewing] = useState(false);
   const [viewProfile, setViewProfile] = useState(false);
 
@@ -43,31 +46,74 @@ export default function UserPreviewPage() {
     window.location.href = "/auth";
   };
 
-  const handleRenewMembership = async () => {
+  // Maneja la actualización del método de pago y monto
+  const handleUpdatePayment = async ({
+    paymentMethod,
+    amount,
+  }: {
+    paymentMethod: string;
+    amount: number;
+  }) => {
+    if (!user) return;
     setIsRenewing(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsRenewing(false);
-    // In a real app, you would handle the renewal logic here
-    alert("¡Membresía renovada exitosamente!");
+    try {
+      const updatedUser = {
+        ...user,
+        paymentMethod,
+        amount,
+      };
+      const res = await updateUser(user._id, updatedUser);
+      setUser(res);
+      toast.success("Método de pago actualizado correctamente");
+      setShowPaymentModal(false);
+    } catch (err) {
+      toast.error(
+        "Error al actualizar método de pago: " + (err as Error).message
+      );
+    } finally {
+      setIsRenewing(false);
+    }
   };
 
+  // Considera "pronto a vencer" si faltan 5 días o menos
   const isExpiringSoon = () => {
     if (!user || !user.dueDate) return false;
+    // Clonar fechas para no modificar los objetos originales
     const dueDate = new Date(user.dueDate);
     const today = new Date();
-    const daysUntilExpiry = Math.ceil(
-      (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    const dueDateMidnight = new Date(
+      dueDate.getFullYear(),
+      dueDate.getMonth(),
+      dueDate.getDate()
     );
-    return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+    const todayMidnight = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const daysUntilExpiry = Math.ceil(
+      (dueDateMidnight.getTime() - todayMidnight.getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+    return daysUntilExpiry > 0 && daysUntilExpiry <= 5;
   };
 
   const isMembershipExpired = () => {
     if (!user || !user.dueDate) return false;
     const dueDate = new Date(user.dueDate);
     const today = new Date();
+    const dueDateMidnight = new Date(
+      dueDate.getFullYear(),
+      dueDate.getMonth(),
+      dueDate.getDate()
+    );
+    const todayMidnight = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
     // Si la fecha de vencimiento es hoy o ya pasó
-    return dueDate < today || dueDate.toDateString() === today.toDateString();
+    return dueDateMidnight.getTime() <= todayMidnight.getTime();
   };
 
   useEffect(() => {
@@ -79,6 +125,9 @@ export default function UserPreviewPage() {
       setEditEmail(user.email || "");
       setEditPhone(user.phone || "");
       setAvatar(user.avatar || "");
+      // Actualizar la última visita al cargar el perfil
+      const now = new Date().toISOString();
+      updateUserLastVisit(user._id, now).catch(() => {});
     }
     // eslint-disable-next-line
   }, [user]);
@@ -139,30 +188,32 @@ export default function UserPreviewPage() {
             <div className="w-full flex flex-col items-center gap-2 justify-center">
               {isMembershipExpired() && (
                 <Badge
-                  status="destructive"
-                  className="w-full ml-2 flex justify-center"
+                  status="vencido"
+                  className="w-full ml-2 flex justify-center gap-1"
                 >
-                  Vencido
+                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                  <span>Vencido</span>
                 </Badge>
               )}
-              {user.status === "Activo" && !isMembershipExpired() && (
+              {!isMembershipExpired() && isExpiringSoon() && (
+                <Badge
+                  status="warning"
+                  className="w-full flex justify-center gap-1"
+                >
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <span>Próximo a vencer</span>
+                </Badge>
+              )}
+              {!isMembershipExpired() && !isExpiringSoon() && (
                 <Badge
                   size="lg"
-                  status="active"
+                  status="activo"
                   className="w-full flex items-center justify-center gap-1"
                 >
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <span className="text-xs font-medium text-green-600">
                     Activo
                   </span>
-                </Badge>
-              )}
-              {isExpiringSoon() && !isMembershipExpired() && (
-                <Badge
-                  status="destructive"
-                  className="w-full flex justify-center"
-                >
-                  Próximo a vencer
                 </Badge>
               )}
             </div>
@@ -313,7 +364,7 @@ export default function UserPreviewPage() {
                 </p>
               </div>
               <Button
-                onClick={handleRenewMembership}
+                onClick={() => setShowPaymentModal(true)}
                 disabled={isRenewing}
                 className="w-full h-16 text-sm font-black bg-gradient-to-r from-white to-gray-100 text-black hover:from-gray-100 hover:to-white shadow-2xl transform transition-all duration-300 hover:scale-[1.02] hover:shadow-3xl rounded-2xl border-2 border-white/20"
               >
@@ -329,10 +380,14 @@ export default function UserPreviewPage() {
                   </>
                 )}
               </Button>
-              <p className="text-xs text-muted-foreground text-center mt-4">
-                Renueva tu membresía para continuar disfrutando de todos los
-                beneficios
-              </p>
+              {/* Modal para actualizar método de pago */}
+              <UserPaymentForm
+                isOpen={showPaymentModal}
+                onClose={() => setShowPaymentModal(false)}
+                onSubmit={handleUpdatePayment}
+                initialPaymentMethod={user?.paymentMethod || ""}
+                initialAmount={user?.amount || 0}
+              />
             </CardContent>
           </Card>
         )}

@@ -33,10 +33,10 @@ import {
   DollarSign,
   AlertTriangle,
   CheckCircle,
-  Clock,
   MoreHorizontal,
   Filter,
   Receipt,
+  Clock4,
 } from "lucide-react";
 import { fetchPayments } from "@/api/paymentService";
 import type { Payments } from "@/preview/interfaces/preview.interfaces";
@@ -65,23 +65,65 @@ const PaymentManagement = () => {
     queryFn: fetchUsers,
   });
   const today = new Date();
-  const vencidos = users.filter(
-    (u) => u.dueDate && new Date(u.dueDate) < today
-  );
 
-  const filteredPayments = payments.filter((payment) => {
+  const allPayments = payments.map((payment) => {
+    // Buscar usuario por _id (payment.user)
+    const user = users.find((u) => u._id === payment.user);
+    const isVencido =
+      user &&
+      user.dueDate &&
+      new Date(user.dueDate) < today &&
+      payment.status !== "Pagado";
+    return isVencido
+      ? {
+          ...payment,
+          status: "Vencido",
+          dueDate: user?.dueDate,
+          avatar: user?.avatar,
+          userName: user?.name,
+        }
+      : {
+          ...payment,
+          dueDate: user?.dueDate || payment.dueDate,
+          avatar: user?.avatar,
+          userName: user?.name,
+        };
+  });
+
+  const usersVencidosSinPago = users
+    .filter(
+      (u) =>
+        u.dueDate &&
+        new Date(u.dueDate) < today &&
+        !payments.some((p) => p.user === u._id)
+    )
+    .map((u) => ({
+      id: `no-payment-${u._id}`,
+      user: u._id,
+      userName: u.name,
+      amount: u.amount || 0,
+      date: "",
+      status: "Vencido",
+      method: u.paymentMethod || "-",
+      concept: "-",
+      dueDate: u.dueDate,
+      avatar: u.avatar,
+      expirationType: u.expirationType,
+    }));
+
+  // Unir pagos y usuarios vencidos sin pago
+  const allRows = [...allPayments, ...usersVencidosSinPago];
+
+  const filteredPayments = allRows.filter((payment) => {
     const matchesSearch =
       payment.user?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.concept?.toLowerCase().includes(searchTerm.toLowerCase());
-    let matchesStatus =
+    const matchesStatus =
       statusFilter === "all" ||
       payment.status?.toLowerCase() === statusFilter.toLowerCase();
-    if (statusFilter === "vencido") {
-      const isVencido = vencidos.some((u) => u.name === payment.user);
-      matchesStatus = isVencido;
-    }
     return matchesSearch && matchesStatus;
   });
+  console.log(filteredPayments);
 
   const totalRevenue = payments
     .filter((p) => p.status === "Pagado")
@@ -90,7 +132,7 @@ const PaymentManagement = () => {
   return (
     <main className="pb-20 w-full min-h-screen flex-1,0_8px_32px_rgba(17,17,26,0.05)]">
       {/* Payment Stats */}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-3 px-2 sm:px-0 pt-4">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-4 px-2 sm:px-0 pt-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -126,7 +168,25 @@ const PaymentManagement = () => {
             </p>
           </CardContent>
         </Card>
-
+        <Card
+          className="cursor-pointer hover:shadow-lg transition"
+          onClick={() => setStatusFilter("pendiente")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Pagos Pendientes
+            </CardTitle>
+            <Clock4 className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
+              {allPayments.filter((p) => p.status === "Pendiente").length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Total de pagos marcados como pendientes
+            </p>
+          </CardContent>
+        </Card>
         <Card
           className="cursor-pointer hover:shadow-lg transition"
           onClick={() => setStatusFilter("vencido")}
@@ -139,11 +199,11 @@ const PaymentManagement = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">
-              {vencidos.length}
+              {allRows.filter((p) => p.status === "Vencido").length}
             </div>
             <p className="text-xs text-muted-foreground">
-              {vencidos.length > 0
-                ? "Haz click para ver usuarios"
+              {allRows.filter((p) => p.status === "Vencido").length > 0
+                ? "Haz click para ver vencidos"
                 : "Sin vencidos"}
             </p>
           </CardContent>
@@ -155,11 +215,7 @@ const PaymentManagement = () => {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={
-              statusFilter === "vencido"
-                ? "Buscar usuario..."
-                : "Buscar pagos..."
-            }
+            placeholder={"Buscar pagos..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -176,86 +232,58 @@ const PaymentManagement = () => {
                 ? "Estado"
                 : statusFilter === "pagado"
                 ? "Pagados"
+                : statusFilter === "pendiente"
+                ? "Pendientes"
                 : statusFilter === "vencido"
                 ? "Vencidos"
                 : "Estado"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setStatusFilter("all")}>Todos</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter("pagado")}>Pagados</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter("vencido")}>Vencidos</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStatusFilter("all")}>
+              Todos
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStatusFilter("pagado")}>
+              Pagados
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStatusFilter("pendiente")}>
+              Pendientes
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStatusFilter("vencido")}>
+              Vencidos
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      {statusFilter === "vencido" ? (
-        <Card className="mt-0 w-full mt-5">
-          <CardHeader>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle>Usuarios con Pagos Vencidos</CardTitle>
-                <CardDescription>
-                  Administra los usuarios con pagos vencidos
-                </CardDescription>
-              </div>
+      <Card className="mt-6 w-full">
+        <CardHeader>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>Gestión de Pagos</CardTitle>
+              <CardDescription>
+                Administra los pagos y transacciones
+              </CardDescription>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md ">
-              {vencidos.length === 0 ? (
-                <div className="text-center py-8">No hay usuarios vencidos</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Usuario</TableHead>
-                      <TableHead>Fecha Venc.</TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {vencidos
-                      .filter((u) =>
-                        u.name.toLowerCase().includes(searchTerm.toLowerCase())
-                      )
-                      .map((u) => (
-                        <TableRow key={u._id}>
-                          <TableCell>
-                            <div className="flex items-center space-x-3">
-                              <Avatar alt={u.name} src={u.avatar} />
-                              <span className="font-medium">{u.name}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-destructive">
-                            {u.dueDate ? u.dueDate.slice(0, 10) : "-"}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => {
-                                setSelectedUserId(u._id);
-                                setOpenModal(true);
-                              }}
-                            >
-                              Actualizar
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-            {openModal && selectedUserId && (
+
+            <Button
+              className="flex items-center gap-2"
+              onClick={() => {
+                setOpenModal(true);
+                setSelectedUserId(null);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Registrar Pago
+            </Button>
+            {openModal && (
               <Modal
                 isOpen={openModal}
                 onClose={() => {
                   setOpenModal(false);
                   setSelectedUserId(null);
                 }}
-                title="Actualizar Pago"
+                title={selectedUserId ? "Actualizar Pago" : "Registrar Pago"}
               >
                 <PaymentForm
                   setOpenModal={setOpenModal}
@@ -264,129 +292,110 @@ const PaymentManagement = () => {
                 />
               </Modal>
             )}
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="mt-6 w-full">
-          <CardHeader>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle>Gestión de Pagos</CardTitle>
-                <CardDescription>
-                  Administra los pagos y transacciones
-                </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {/* Payments Table */}
+          <div className="rounded-md ">
+            {loading ? (
+              <div className="text-center py-8">Cargando pagos...</div>
+            ) : error ? (
+              <div className="text-center text-red-500 py-8">
+                {error.message}
               </div>
-
-              <Button
-                className="flex items-center gap-2"
-                onClick={() => {
-                  setOpenModal(true);
-                  setSelectedUserId(null);
-                }}
-              >
-                <Plus className="h-4 w-4" />
-                Registrar Pago
-              </Button>
-              {openModal && !selectedUserId && (
-                <Modal
-                  isOpen={openModal}
-                  onClose={() => setOpenModal(false)}
-                  title="Registrar Pago"
-                >
-                  <PaymentForm
-                    setOpenModal={setOpenModal}
-                    openModal={openModal}
-                  />
-                </Modal>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* Payments Table */}
-            <div className="rounded-md ">
-              {loading ? (
-                <div className="text-center py-8">Cargando pagos...</div>
-              ) : error ? (
-                <div className="text-center text-red-500 py-8">
-                  {error.message}
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuario</TableHead>
+                    <TableHead>Concepto</TableHead>
+                    <TableHead>Monto</TableHead>
+                    <TableHead>Método</TableHead>
+                    <TableHead>Fecha Venc.</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredPayments.length === 0 ? (
                     <TableRow>
-                      <TableHead>Usuario</TableHead>
-                      <TableHead>Concepto</TableHead>
-                      <TableHead>Monto</TableHead>
-                      <TableHead>Método</TableHead>
-                      <TableHead>Fecha Venc.</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
+                      <TableCell colSpan={7} className="text-center">
+                        No hay pagos para mostrar
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredPayments.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center">
-                          No hay pagos para mostrar
+                  ) : (
+                    filteredPayments.map((payment) => (
+                      <TableRow key={payment.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar alt={payment?.userName} src={payment?.avatar} />
+                            <span className="font-medium">{payment.userName || payment.user}</span>
+                          </div>
                         </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredPayments.map((payment) => (
-                        <TableRow key={payment.id}>
-                          <TableCell>
-                            <div className="flex items-center space-x-3">
-                              <Avatar alt={payment?.user} />
-                              <span className="font-medium">
-                                {payment.user}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{payment.concept}</TableCell>
-                          <TableCell className="font-medium">
-                            ${payment.amount}
-                          </TableCell>
-                          <TableCell>{payment.method}</TableCell>
-                          <TableCell>
-                            {payment.dueDate
-                              ? new Date(payment.dueDate).toLocaleDateString()
-                              : "-"}
-                          </TableCell>
-                          <TableCell>
-                            <Badge status={payment.status}>
-                              {payment.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
+                        <TableCell>{payment.concept}</TableCell>
+                        <TableCell className="font-medium">
+                          ${payment.amount}
+                        </TableCell>
+                        <TableCell>{payment.method}</TableCell>
+                        <TableCell
+                          className={
+                            payment.status === "Vencido"
+                              ? "text-destructive"
+                              : ""
+                          }
+                        >
+                          {payment.dueDate
+                            ? new Date(payment.dueDate).toLocaleDateString()
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge status={payment.status}>
+                            {payment.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {payment.status === "Pagado" && (
                                 <DropdownMenuItem className="flex items-center gap-2">
                                   <Receipt className="h-4 w-4" />
                                   Ver Recibo
                                 </DropdownMenuItem>
-                                {payment.status !== "Pagado" && (
-                                  <DropdownMenuItem className="flex items-center gap-2">
-                                    <CheckCircle className="h-4 w-4" />
-                                    Marcar como Pagado
-                                  </DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                              )}
+                              {payment.status === "Vencido" && (
+                                <DropdownMenuItem
+                                  className="flex items-center gap-2"
+                                  onClick={() => {
+                                    const user = users.find(
+                                      (u) => u.name === payment.user
+                                    );
+                                    if (user) {
+                                      setSelectedUserId(user._id);
+                                      setOpenModal(true);
+                                    }
+                                  }}
+                                >
+                                  <DollarSign className="h-4 w-4" />
+                                  Actualizar Pago
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </main>
   );
 };

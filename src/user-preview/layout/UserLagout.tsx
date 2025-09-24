@@ -1,4 +1,4 @@
-import UserPreviewPage from "../UserPreviewPage";
+import UserPreviewPage from "../pages/UserPreviewPage";
 
 export default function UserLayout() {
   return (

@@ -100,3 +100,19 @@ export const updateUser = async (id: string, userData: Omit<User, "id">) => {
     "Error al actualizar usuario"
   );
 };
+
+export const updateUserLastVisit = async (id: string, lastVisit: string) => {
+  const token = localStorage.getItem("token");
+  return fetchWithErrorHandling(
+    `/api/users/${id}/last-visit`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ lastVisit }),
+    },
+    "Error al actualizar la última visita"
+  );
+};
