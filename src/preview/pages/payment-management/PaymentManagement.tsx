@@ -67,7 +67,8 @@ const PaymentManagement = () => {
   const today = new Date();
 
   const allPayments = payments.map((payment) => {
-    const user = users.find((u) => u.name === payment.user);
+    // Buscar usuario por _id (payment.user)
+    const user = users.find((u) => u._id === payment.user);
     const isVencido =
       user &&
       user.dueDate &&
@@ -77,13 +78,15 @@ const PaymentManagement = () => {
       ? {
           ...payment,
           status: "Vencido",
-          dueDate: user.dueDate,
-          avatar: user.avatar,
+          dueDate: user?.dueDate,
+          avatar: user?.avatar,
+          userName: user?.name,
         }
       : {
           ...payment,
           dueDate: user?.dueDate || payment.dueDate,
           avatar: user?.avatar,
+          userName: user?.name,
         };
   });
 
@@ -92,11 +95,12 @@ const PaymentManagement = () => {
       (u) =>
         u.dueDate &&
         new Date(u.dueDate) < today &&
-        !payments.some((p) => p.user === u.name)
+        !payments.some((p) => p.user === u._id)
     )
     .map((u) => ({
       id: `no-payment-${u._id}`,
-      user: u.name,
+      user: u._id,
+      userName: u.name,
       amount: u.amount || 0,
       date: "",
       status: "Vencido",
@@ -324,8 +328,8 @@ const PaymentManagement = () => {
                       <TableRow key={payment.id}>
                         <TableCell>
                           <div className="flex items-center space-x-3">
-                            <Avatar alt={payment?.user} src={payment?.avatar} />
-                            <span className="font-medium">{payment.user}</span>
+                            <Avatar alt={payment?.userName} src={payment?.avatar} />
+                            <span className="font-medium">{payment.userName || payment.user}</span>
                           </div>
                         </TableCell>
                         <TableCell>{payment.concept}</TableCell>
