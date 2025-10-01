@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUserStore } from "@/hook/useUserStore";
+import { useUserStore } from "@/hooks/useUserStore";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";

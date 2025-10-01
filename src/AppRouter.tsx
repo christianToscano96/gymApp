@@ -2,41 +2,43 @@ import React from "react";
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import AuthLayout from "./auth/layout/AuthLayout";
-import LoginPage from "./auth/pages/LoginPage";
-import PrivateRoute from "./auth/components/PrivateRoute";
-import RegisterForm from "./auth/pages/RegisterForm";
+import AuthLayout from "./features/auth/layout/AuthLayout";
+import LoginPage from "./features/auth/pages/LoginPage";
+import PrivateRoute from "./features/auth/components/PrivateRoute";
+import RegisterForm from "./features/auth/pages/RegisterForm";
 
 const GymLayout = lazy(() => {
-  return import("./preview/layout/GymLayout");
+  return import("./features/preview/layout/GymLayout");
 });
 
 const UserLayout = lazy(() => {
-  return import("./user-preview/layout/UserLagout");
+  return import("./features/user-preview/layout/UserLagout");
 });
 
 const TrainerLayout = lazy(() => {
-  return import("./trainer-preview/layout/TrainerLayout");
+  return import("./features/trainer-preview/layout/TrainerLayout");
 });
 
 const UserPage = lazy(() => {
-  return import("./preview/pages/users/UserPage");
+  return import("./features/preview/pages/users/UserPage");
 });
 
 const DashboardLayout = lazy(() => {
-  return import("./preview/pages/dashboard/DashboardPage");
+  return import("./features/preview/pages/dashboard/DashboardPage");
 });
 
 const QrAccessControl = lazy(() => {
-  return import("./preview/pages/qr-access-control/QrAccessControl");
+  return import("./features/preview/pages/qr-access-control/QrAccessControl");
 });
 
 const PaymentManagement = lazy(() => {
-  return import("./preview/pages/payment-management/PaymentManagement");
+  return import(
+    "./features/preview/pages/payment-management/PaymentManagement"
+  );
 });
 
 const ProfilePreview = lazy(() => {
-  return import("./preview/pages/profile-preview/ProfilePreview");
+  return import("./features/preview/pages/profile-preview/ProfilePreview");
 });
 
 function AppRouter() {

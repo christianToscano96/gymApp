@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useCurrentUser } from "@/hook/useCurrentUser";
-import { useAvatarResize } from "@/hook/useAvatarResize";
-import type { User } from "@/preview/interfaces/preview.interfaces";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useAvatarResize } from "@/hooks/useAvatarResize";
+import type { User } from "@/features/preview/interfaces/preview.interfaces";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarPicker } from "@/components/ui/calendar-picker";

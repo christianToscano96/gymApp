@@ -1,4 +1,4 @@
-import type { User } from "@/preview/interfaces/preview.interfaces";
+import type { User } from "@/features/preview/interfaces/preview.interfaces";
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs } from "@/components/ui/tabs";
@@ -20,7 +20,7 @@ import Badge from "@/components/ui/badge";
 import AlertDialog from "@/components/ui/alert-dialog";
 import Modal from "@/components/ui/modal";
 import { useQuery } from "@tanstack/react-query";
-import { useCurrentUser } from "@/hook/useCurrentUser";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 import { fetchUsers } from "@/api/userService";
 import { AddUserForm } from "./AddUserForm";

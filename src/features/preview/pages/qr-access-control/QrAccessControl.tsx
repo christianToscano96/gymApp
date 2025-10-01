@@ -1,7 +1,7 @@
 // React
 import { useEffect, useState } from "react";
-import type { AccessLogs, User } from "@/preview/interfaces/preview.interfaces";
-import ZxingQrScanner from "@/preview/components/ZxingQrScanner";
+import type { AccessLogs, User } from "@/features/preview/interfaces/preview.interfaces";
+import ZxingQrScanner from "@/features/preview/components/ZxingQrScanner";
 import Avatar from "@/components/ui/avatar";
 import {
   Card,

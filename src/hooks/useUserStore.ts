@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User } from "@/preview/interfaces/preview.interfaces";
+import type { User } from "@/features/preview/interfaces/preview.interfaces";
 
 interface UserStore {
   user: User | null;

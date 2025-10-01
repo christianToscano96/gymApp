@@ -10,7 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { useCurrentUser } from "@/hook/useCurrentUser";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Bell, Settings, LogOut } from "lucide-react";
 import { Toaster } from "sonner";
 
@@ -59,7 +59,9 @@ export default function GymLayout() {
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Cuenta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate(`/preview/${currentUser?._id}`)}>
+              <DropdownMenuItem
+                onClick={() => navigate(`/preview/${currentUser?._id}`)}
+              >
                 <Settings className="h-4 w-4 mr-2" /> Mi Perfil
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onLogout}>

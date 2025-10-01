@@ -1,5 +1,5 @@
 import { Navigate } from "react-router";
-import { useUserStore } from "@/hook/useUserStore";
+import { useUserStore } from "@/hooks/useUserStore";
 
 interface Props {
   requiredRole?: "administrator" | "user" | "staff" | "trainer";

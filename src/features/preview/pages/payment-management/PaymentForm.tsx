@@ -1,14 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useUserStore } from "@/hook/useUserStore";
+import { useUserStore } from "@/hooks/useUserStore";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchUsers } from "@/api/userService";
-import type { User } from "@/preview/interfaces/preview.interfaces";
-import type { Payments } from "@/preview/interfaces/preview.interfaces";
-import { createPaymentWithUser, updatePaymentWithUser } from "@/api/paymentService";
-
+import type { User } from "@/features/preview/interfaces/preview.interfaces";
+import type { Payments } from "@/features/preview/interfaces/preview.interfaces";
+import {
+  createPaymentWithUser,
+  updatePaymentWithUser,
+} from "@/api/paymentService";
 
 interface PaymentFormProps {
   openModal: boolean;
@@ -230,7 +232,9 @@ const PaymentForm = ({ openModal, setOpenModal, userId }: PaymentFormProps) => {
           <select
             className="w-full border rounded px-3 py-2 mt-1"
             value={expirationType}
-            onChange={(e) => setExpirationType(e.target.value as "1" | "15" | "monthly" | "" )}
+            onChange={(e) =>
+              setExpirationType(e.target.value as "1" | "15" | "monthly" | "")
+            }
             required
           >
             <option value="" disabled>

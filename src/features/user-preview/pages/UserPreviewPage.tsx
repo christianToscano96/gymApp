@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAvatarResize } from "@/hook/useAvatarResize";
+import { useAvatarResize } from "@/hooks/useAvatarResize";
 import {
   CheckCircle,
   LogOut,
@@ -13,7 +13,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUserStore } from "@/hook/useUserStore";
+import { useUserStore } from "@/hooks/useUserStore";
 import { updateUser, updateUserLastVisit } from "@/api/userService";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";

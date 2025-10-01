@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery as useQueryUsers } from "@tanstack/react-query";
 import { fetchUsers } from "@/api/userService";
-import type { User } from "@/preview/interfaces/preview.interfaces";
+import type { User } from "@/features/preview/interfaces/preview.interfaces";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -39,7 +39,7 @@ import {
   Clock4,
 } from "lucide-react";
 import { fetchPayments } from "@/api/paymentService";
-import type { Payments } from "@/preview/interfaces/preview.interfaces";
+import type { Payments } from "@/features/preview/interfaces/preview.interfaces";
 import { Avatar } from "@/components/ui/avatar";
 import PaymentForm from "./PaymentForm";
 import Modal from "@/components/ui/modal";

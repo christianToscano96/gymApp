@@ -2,10 +2,10 @@ import React from "react";
 import { formatDateES } from "@/lib/utils";
 import { useNavigate } from "react-router";
 import { ChevronLeftIcon } from "lucide-react";
-import { useCurrentUser } from "@/hook/useCurrentUser";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAvatarResize } from "@/hook/useAvatarResize";
+import { useAvatarResize } from "@/hooks/useAvatarResize";
 import Badge from "@/components/ui/badge";
 
 interface ProfilePreviewProps {
