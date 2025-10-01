@@ -325,11 +325,16 @@ const PaymentManagement = () => {
                     </TableRow>
                   ) : (
                     filteredPayments.map((payment) => (
-                      <TableRow key={payment.id}>
+                      <TableRow key={payment.id || payment.user}>
                         <TableCell>
                           <div className="flex items-center space-x-3">
-                            <Avatar alt={payment?.userName} src={payment?.avatar} />
-                            <span className="font-medium">{payment.userName || payment.user}</span>
+                            <Avatar
+                              alt={payment?.userName}
+                              src={payment?.avatar}
+                            />
+                            <span className="font-medium">
+                              {payment.userName || payment.user}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell>{payment.concept}</TableCell>
