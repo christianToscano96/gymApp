@@ -399,7 +399,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ id, onClose }) => {
       onSubmit={handleSubmit}
       className="w-full h-full bg-white p-0 sm:p-6 md:p-8 space-y-3 md:space-y-4 overflow-auto"
     >
-      {(id || typeof window === "undefined" || window.innerWidth >= 640) && (
+      {id && (
         <div className="flex flex-col items-center mb-2">
           <label htmlFor="avatar" className="cursor-pointer">
             <div className="w-20 h-20 xs:w-24 xs:h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-gray-100">

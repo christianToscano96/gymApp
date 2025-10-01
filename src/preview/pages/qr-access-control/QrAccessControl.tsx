@@ -242,13 +242,13 @@ const QrAccessControl = () => {
                       </Badge>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 mt-2">
+                  <div className="flex  w-full justify-center gap-2 mt-2">
                     <Button
                       onClick={() => {
                         handleAccess(true);
                         toast.success("Acceso permitido");
                       }}
-                      className="w-full py-4 text-base rounded-xl"
+                      className=" py-4 text-base rounded-xl"
                     >
                       <CheckCircle className="h-5 w-5 mr-2" />
                       Permitir Acceso
@@ -256,7 +256,7 @@ const QrAccessControl = () => {
                     <Button
                       onClick={() => handleAccess(false)}
                       variant="destructive"
-                      className="w-full py-4 text-base rounded-xl"
+                      className=" py-4 text-base rounded-xl"
                     >
                       <XCircle className="h-5 w-5 mr-2" />
                       Denegar Acceso
