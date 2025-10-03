@@ -114,6 +114,7 @@ const PaymentManagement = () => {
   // Unir pagos y usuarios vencidos sin pago
   const allRows = [...allPayments, ...usersVencidosSinPago];
 
+  const validStatuses = ["pagado", "pendiente", "vencido"];
   const filteredPayments = allRows.filter((payment) => {
     const matchesSearch =
       payment.user?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -121,7 +122,8 @@ const PaymentManagement = () => {
     const matchesStatus =
       statusFilter === "all" ||
       payment.status?.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
+    const isValidStatus = validStatuses.includes(payment.status?.toLowerCase());
+    return matchesSearch && matchesStatus && isValidStatus;
   });
   console.log(filteredPayments);
 
@@ -377,7 +379,7 @@ const PaymentManagement = () => {
                                   className="flex items-center gap-2"
                                   onClick={() => {
                                     const user = users.find(
-                                      (u) => u.name === payment.user
+                                      (u) => u._id === payment.user
                                     );
                                     if (user) {
                                       setSelectedUserId(user._id);
