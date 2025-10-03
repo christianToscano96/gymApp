@@ -4,7 +4,7 @@ import Joi from "joi";
 const registerSchema = Joi.object({
   name: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
+  password: Joi.string().min(6).allow(null, "").optional(),
   role: Joi.string()
     .valid("administrator", "user", "staff", "trainer")
     .required(),
@@ -18,6 +18,7 @@ const registerSchema = Joi.object({
   amount: Joi.number().min(0).allow(null, ""),
   status: Joi.string().valid("activo", "vencido", "pendiente").allow(null, ""),
   paymentProof: Joi.string().allow(null, ""),
+  expirationType: Joi.string().valid("1", "15", "monthly").allow(null, ""),
 });
 
 const loginSchema = Joi.object({

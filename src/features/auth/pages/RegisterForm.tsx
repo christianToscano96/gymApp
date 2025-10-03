@@ -1,3 +1,4 @@
+import { useUserStore } from "@/hooks/useUserStore";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -13,19 +14,20 @@ interface RegisterFormProps {
   onRegister?: (data: {
     name: string;
     email: string;
-    password: string;
+    password: string | null;
     role: string;
     status: string;
   }) => void;
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
-  // El rol siempre será 'user'
+  const setUser = useUserStore((state) => state.setUser);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [dni, setDni] = useState("");
+  const [expirationType, setExpirationType] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("efectivo");
   const [error, setError] = useState("");
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
@@ -80,8 +82,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !password || !phone || !dni) {
-      setError("Todos los campos son obligatorios");
+    if (!name || !email || !phone || !dni || !expirationType) {
+      setError(
+        "Todos los campos son obligatorios, incluyendo el tipo de expiración"
+      );
       return;
     }
     if (dni.length !== 8) {
@@ -95,6 +99,19 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
     setError("");
     setPaymentProofError("");
     setLoading(true);
+    // Calcular dueDate según expirationType
+    let dueDate = "";
+    if (expirationType) {
+      const now = new Date();
+      if (expirationType === "1") {
+        now.setDate(now.getDate() + 1);
+      } else if (expirationType === "15") {
+        now.setDate(now.getDate() + 15);
+      } else if (expirationType === "monthly") {
+        now.setMonth(now.getMonth() + 1);
+      }
+      dueDate = now.toISOString();
+    }
     try {
       let status = "activo";
       if (paymentMethod === "efectivo" || paymentMethod === "transferencia") {
@@ -106,13 +123,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
         const formData = new FormData();
         formData.append("name", name);
         formData.append("email", email);
-        formData.append("password", password);
+        formData.append("password", "");
         formData.append("role", "user");
         formData.append("phone", phone);
         formData.append("paymentMethod", paymentMethod);
         formData.append("status", status);
         formData.append("dni", dni);
-        formData.append("dueDate", "");
+        formData.append("dueDate", dueDate);
+        formData.append("expirationType", expirationType);
         formData.append("paymentProof", paymentProof);
         response = await fetch("http://localhost:5050/api/auth/register", {
           method: "POST",
@@ -127,13 +145,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
           body: JSON.stringify({
             name,
             email,
-            password,
+            password: null,
             role: "user",
             phone,
             paymentMethod,
             status,
             dni,
-            dueDate: "",
+            dueDate,
+            expirationType,
           }),
         });
       }
@@ -150,22 +169,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
       const data = await response.json();
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", "user");
-      queryClient.setQueryData(["user"], {
-        name: data?.user?.name || name,
-        email: data?.user?.email || email,
-        role: "user",
-        token: data.token,
-        phone: data?.user?.phone || phone,
-        status: data?.user?.status || status,
-        paymentMethod: data?.user?.paymentMethod || paymentMethod,
-      });
+      // Guardar el usuario completo en Zustand
+      setUser({ ...data.user, token: data.token });
+      queryClient.setQueryData(["user"], data.user);
 
       setShowSuccess(true);
       setTimeout(() => {
         navigate("/user-preview", { replace: true });
       }, 2000);
       if (onRegister) {
-        onRegister({ name, email, password, role: "user", status });
+        onRegister({ name, email, password: null, role: "user", status });
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -186,9 +199,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
           onClose={() => setShowSuccess(false)}
         />
       )}
-      <Card className="overflow-hidden p-0 w-full max-w-3xl shadow-lg">
-        <CardContent className="flex p-0 justify-center align-center">
-          <form className="p-6 md:p-8" onSubmit={handleSubmit}>
+      <Card className="overflow-hidden p-0 w-full max-w-1xl shadow-lg">
+        <CardContent className="p-10 w-full">
+          <form className="w-full p-0" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Crea tu cuenta</h1>
@@ -203,6 +216,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
                   variant="destructive"
                 />
               )}
+
               <div className="grid gap-2">
                 <Label htmlFor="name">Nombre</Label>
                 <Input
@@ -248,16 +262,21 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
                   onChange={(e) => setDni(e.target.value)}
                 />
               </div>
+
               <div className="grid gap-2">
-                <Label htmlFor="password">Contraseña</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Contraseña"
+                <Label htmlFor="expirationType">Tipo de expiración</Label>
+                <select
+                  id="expirationType"
+                  className="border rounded px-3 py-2"
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                  value={expirationType}
+                  onChange={(e) => setExpirationType(e.target.value)}
+                >
+                  <option value="">Selecciona una opción</option>
+                  <option value="1">1 día</option>
+                  <option value="15">15 días</option>
+                  <option value="monthly">Mensual</option>
+                </select>
               </div>
               <div className="grid gap-2">
                 <Label>Método de pago</Label>
