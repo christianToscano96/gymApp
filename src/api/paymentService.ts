@@ -1,4 +1,4 @@
-import type { Payments } from "@/preview/interfaces/preview.interfaces";
+import type { Payments } from "@/features/preview/interfaces/preview.interfaces";
 
 // Obtener token del usuario desde localStorage (ajusta si lo guardas en otro lado)
 function getAuthToken() {

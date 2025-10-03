@@ -1,5 +1,5 @@
 import { sleep } from "@/lib/sleep";
-import type { AccessLogs, User,Payments } from "@/preview/interfaces/preview.interfaces"
+import type { AccessLogs, User,Payments } from "@/features/preview/interfaces/preview.interfaces"
 
 
 export const mockUsers: User[] = [

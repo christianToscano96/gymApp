@@ -1,4 +1,4 @@
-import type { User } from "@/preview/interfaces/preview.interfaces";
+import type { User } from "@/features/preview/interfaces/preview.interfaces";
 
 
 // Utilidad para fetch con manejo de errores
