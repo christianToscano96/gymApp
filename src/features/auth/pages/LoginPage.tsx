@@ -114,7 +114,7 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
         />
       )}
       <Card className="overflow-hidden p-0 w-full max-w-3xl shadow-lg">
-        <CardContent className="grid p-0 md:grid-cols-2">
+        <CardContent className="flex p-0 justify-center align-center">
           <form className="p-6 md:p-8" onSubmit={onSubmit}>
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
@@ -231,15 +231,6 @@ function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
               </div>
             </div>
           </form>
-          <div className="relative hidden bg-muted md:block">
-            <img
-              src={
-                "https://www.paxinasgalegas.es/imagenes/gimnasios-y-fitness-cambre_img238t6m0w1200h1200.jpg"
-              }
-              alt="Image"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-            />
-          </div>
         </CardContent>
       </Card>
       <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary mt-4">

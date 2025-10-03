@@ -40,6 +40,7 @@ export const register = async (userData) => {
     avatar,
     paymentMethod,
     amount,
+    paymentProof,
   } = userData;
 
   const userExists = await User.findOne({ email });
@@ -47,6 +48,12 @@ export const register = async (userData) => {
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
+
+  // Si el método de pago es efectivo o transferencia, status debe ser 'pendiente'
+  let status = "activo";
+  if (paymentMethod === "efectivo" || paymentMethod === "transferencia") {
+    status = "pendiente";
+  }
 
   const user = new User({
     name,
@@ -60,6 +67,8 @@ export const register = async (userData) => {
     avatar: avatar || null,
     paymentMethod: paymentMethod || null,
     amount: amount || null,
+    paymentProof: paymentMethod === "transferencia" && paymentProof ? paymentProof : null,
+    status,
   });
   await user.save();
 
