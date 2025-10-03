@@ -4,7 +4,7 @@ import Joi from "joi";
 const registerSchema = Joi.object({
   name: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
+  password: Joi.string().min(6).allow(null, "").optional(),
   role: Joi.string()
     .valid("administrator", "user", "staff", "trainer")
     .required(),
@@ -16,6 +16,9 @@ const registerSchema = Joi.object({
     .valid("efectivo", "transferencia", "qr")
     .allow(null, ""),
   amount: Joi.number().min(0).allow(null, ""),
+  status: Joi.string().valid("activo", "vencido", "pendiente").allow(null, ""),
+  paymentProof: Joi.string().allow(null, ""),
+  expirationType: Joi.string().valid("1", "15", "monthly").allow(null, ""),
 });
 
 const loginSchema = Joi.object({
@@ -25,9 +28,14 @@ const loginSchema = Joi.object({
 
 export const register = async (req, res) => {
   try {
-    const { error } = registerSchema.validate(req.body);
+    // Si es transferencia y hay archivo, agregar la ruta al body
+    let userData = req.body;
+    if (req.body.paymentMethod === "transferencia" && req.file) {
+      userData = { ...req.body, paymentProof: req.file.path };
+    }
+    const { error } = registerSchema.validate(userData);
     if (error) return res.status(400).json({ error: error.details[0].message });
-    const result = await authService.register(req.body);
+    const result = await authService.register(userData);
     res.status(201).json(result);
   } catch (err) {
     res

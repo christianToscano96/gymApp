@@ -40,13 +40,38 @@ export const register = async (userData) => {
     avatar,
     paymentMethod,
     amount,
+    paymentProof,
+    expirationType,
   } = userData;
 
   const userExists = await User.findOne({ email });
   if (userExists) throw new Error("Email ya registrado");
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  let hashedPassword = null;
+  if (typeof password === "string" && password.length > 0) {
+    const salt = await bcrypt.genSalt(10);
+    hashedPassword = await bcrypt.hash(password, salt);
+  }
+
+  // Si el método de pago es efectivo o transferencia, status debe ser 'pendiente'
+  let status = "activo";
+  if (paymentMethod === "efectivo" || paymentMethod === "transferencia") {
+    status = "pendiente";
+  }
+
+  // Calcular dueDate si viene null o vacío
+  let finalDueDate = dueDate;
+  if ((!dueDate || dueDate === "") && expirationType) {
+    const now = new Date();
+    if (expirationType === "1") {
+      now.setDate(now.getDate() + 1);
+    } else if (expirationType === "15") {
+      now.setDate(now.getDate() + 15);
+    } else if (expirationType === "monthly") {
+      now.setMonth(now.getMonth() + 1);
+    }
+    finalDueDate = now.toISOString();
+  }
 
   const user = new User({
     name,
@@ -56,17 +81,21 @@ export const register = async (userData) => {
     phone,
     dni,
     joinDate: new Date(),
-    dueDate: dueDate || null,
+    dueDate: finalDueDate || null,
     avatar: avatar || null,
     paymentMethod: paymentMethod || null,
     amount: amount || null,
+    paymentProof:
+      paymentMethod === "transferencia" && paymentProof ? paymentProof : null,
+    status,
+    expirationType: expirationType || null,
   });
   await user.save();
 
-  // Solo generar QR si el rol es "user"
+  // Solo generar QR si el rol es "user", el método de pago es "qr" y el status NO es "pendiente"
   let qrCode = null;
   let qrImage = null;
-  if (role === "user") {
+  if (role === "user" && paymentMethod === "qr" && status !== "pendiente") {
     const qr = await generateQr(user._id.toString());
     user.qrCode = qr.qrCode;
     user.qrImage = qr.qrImage;

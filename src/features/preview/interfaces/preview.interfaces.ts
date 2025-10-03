@@ -3,7 +3,7 @@ export interface User {
   name: string
   phone: string
   email: string
-  status: "Activo" | "Vencido" | "Pendiente"
+  status: "Activo" | "Vencido" | "pendiente"
   lastVisit: string
   avatar?: string
   joinDate: string,
@@ -32,7 +32,7 @@ export interface Payments {
   user: string,
   amount: number,
   paymentDate: string,
-  status: "Pagado" | "Pendiente" | "Vencido",
+  status: "Pagado" | "pendiente" | "Vencido",
   method: "Tarjeta" | "Efectivo" | "Transferencia",
   concept: string,
   dueDate: string,

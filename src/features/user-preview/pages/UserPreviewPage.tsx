@@ -186,7 +186,15 @@ export default function UserPreviewPage() {
               {user.name}
             </h1>
             <div className="w-full flex flex-col items-center gap-2 justify-center">
-              {isMembershipExpired() && (
+              {user.status === "pendiente" ? (
+                <Badge
+                  status="warning"
+                  className="w-full flex justify-center gap-1"
+                >
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <span>Pendiente</span>
+                </Badge>
+              ) : isMembershipExpired() ? (
                 <Badge
                   status="vencido"
                   className="w-full ml-2 flex justify-center gap-1"
@@ -194,8 +202,7 @@ export default function UserPreviewPage() {
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                   <span>Vencido</span>
                 </Badge>
-              )}
-              {!isMembershipExpired() && isExpiringSoon() && (
+              ) : isExpiringSoon() ? (
                 <Badge
                   status="warning"
                   className="w-full flex justify-center gap-1"
@@ -203,8 +210,7 @@ export default function UserPreviewPage() {
                   <AlertTriangle className="h-4 w-4 text-yellow-600" />
                   <span>Próximo a vencer</span>
                 </Badge>
-              )}
-              {!isMembershipExpired() && !isExpiringSoon() && (
+              ) : (
                 <Badge
                   size="lg"
                   status="activo"
@@ -312,8 +318,8 @@ export default function UserPreviewPage() {
           </Card>
         )}
 
-        {/* QR Code for Access (solo si no está vencido) */}
-        {!isMembershipExpired() && (
+        {/* QR Code for Access (solo si no está vencido y no está pendiente) */}
+        {!isMembershipExpired() && user.status !== "pendiente" && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -346,6 +352,25 @@ export default function UserPreviewPage() {
                   Presenta este código QR en la entrada del gimnasio para
                   acceder a las instalaciones
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {/* Mensaje si está pendiente */}
+        {user.status === "pendiente" && !isMembershipExpired() && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <QrCode className="h-5 w-5 text-primary" />
+                Código de Acceso
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center space-y-4">
+                <span className="text-muted-foreground text-center">
+                  Obtendrá su código QR cuando el administrador dé de alta su
+                  usuario
+                </span>
               </div>
             </CardContent>
           </Card>

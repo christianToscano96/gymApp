@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, unique: true, required: true, match: /.+@.+\..+/ },
-  password: { type: String, required: true },
+  password: { type: String, required: false, default: null },
   phone: { type: String },
   dni: { type: String, unique: true, required: true },
   role: {
@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema({
   qrCode: { type: String, default: null },
   qrImage: { type: String, default: null },
   paymentMethod: { type: String, enum: ["efectivo", "transferencia", "qr"], default: null },
+  paymentProof: { type: String, default: null }, // Ruta del comprobante de pago
   amount: { type: Number, default: null, min: 0 },
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
